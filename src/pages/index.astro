@@ -1,0 +1,68 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { posts, projects } from '../lib/mock-data';
+
+const latestPosts = posts.slice(-3).reverse();
+const featuredProjects = projects.filter((p) => p.featured);
+---
+
+<BaseLayout title="Inicio">
+  <section class="box">
+    <h1>Hola, soy tu-nombre 👋</h1>
+    <p>
+      Este es mi rincón personal en internet. Acá escribo sobre programación,
+      dejo constancia de proyectos y guardo cosas que no quiero perder.
+      Reconstruido en 2026 con el espíritu de los sitios personales de hace
+      veinte años, pero con herramientas de hoy.
+    </p>
+  </section>
+
+  <section aria-labelledby="ultimos-posts-heading">
+    <h2 id="ultimos-posts-heading">Últimas entradas</h2>
+    <ul class="post-list">
+      {latestPosts.map((post) => (
+        <li class="box">
+          <a href={`/blog/${post.slug}`}>
+            <h3>{post.title}</h3>
+          </a>
+          <p>{post.description}</p>
+          <ul class="tag-list">
+            {post.tags.map((tag) => <li class="badge">#{tag}</li>)}
+          </ul>
+        </li>
+      ))}
+    </ul>
+    <p><a href="/blog">ver todas las entradas →</a></p>
+  </section>
+
+  <section aria-labelledby="proyectos-destacados-heading">
+    <h2 id="proyectos-destacados-heading">Proyectos destacados</h2>
+    <ul class="post-list">
+      {featuredProjects.map((project) => (
+        <li class="box">
+          <a href={`/projects/${project.slug}`}>
+            <h3>{project.name}</h3>
+          </a>
+          <p>{project.description}</p>
+        </li>
+      ))}
+    </ul>
+    <p><a href="/projects">ver todos los proyectos →</a></p>
+  </section>
+</BaseLayout>
+
+<style>
+  .post-list {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: var(--space-3);
+  }
+  .post-list h3 {
+    margin: 0 0 var(--space-2);
+    font-size: 1.05rem;
+  }
+  .post-list a {
+    text-decoration: none;
+  }
+</style>

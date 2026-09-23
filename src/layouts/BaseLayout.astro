@@ -1,0 +1,68 @@
+---
+import '../styles/global.css';
+import SiteHeader from '../components/astro/SiteHeader.astro';
+import SiteFooter from '../components/astro/SiteFooter.astro';
+import Sidebar from '../components/astro/Sidebar.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+  /** false para páginas que no necesitan la sidebar (ej. la home puede definir su propio grid) */
+  showSidebar?: boolean;
+}
+
+const {
+  title,
+  description = 'Un rincón personal en internet: notas, proyectos y cosas que estoy leyendo o escuchando.',
+  showSidebar = true,
+} = Astro.props;
+
+const pageTitle = title === 'Inicio' ? title + ' — mi sitio' : `${title} — mi sitio`;
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="canonical" href={canonicalURL} />
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalURL} />
+
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={description} />
+
+    <!-- Preparado para Fase 2: acá se agregará el <link rel="alternate" type="application/rss+xml"> -->
+  </head>
+  <body>
+    <a href="#contenido-principal" class="skip-link">Saltar al contenido principal</a>
+    <SiteHeader />
+
+    <div class="site-shell">
+      {showSidebar ? (
+        <div class="site-grid">
+          <main id="contenido-principal">
+            <slot />
+          </main>
+          <Sidebar />
+        </div>
+      ) : (
+        <main id="contenido-principal" style="padding-block: var(--space-5);">
+          <slot />
+        </main>
+      )}
+    </div>
+
+    <SiteFooter />
+  </body>
+</html>

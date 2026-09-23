@@ -1,0 +1,28 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { projects } from '../../lib/mock-data';
+---
+
+<BaseLayout title="Proyectos" description="Cosas que construí o estoy construyendo.">
+  <h1>Proyectos</h1>
+  <ul class="post-list">
+    {projects.map((project) => (
+      <li class="box">
+        <a href={`/projects/${project.slug}`}>
+          <h2>{project.name}</h2>
+        </a>
+        <p>{project.description}</p>
+        <ul class="tag-list">
+          {project.technologies.map((tech) => <li class="badge">{tech}</li>)}
+          <li class="badge">estado: {project.status}</li>
+        </ul>
+      </li>
+    ))}
+  </ul>
+</BaseLayout>
+
+<style>
+  .post-list { list-style: none; padding: 0; display: grid; gap: var(--space-3); }
+  .post-list h2 { margin: 0 0 var(--space-2); font-size: 1.1rem; }
+  .post-list a { text-decoration: none; }
+</style>

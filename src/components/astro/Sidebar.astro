@@ -1,0 +1,25 @@
+---
+import { nowPlaying, nowReading } from '../../lib/mock-data';
+---
+
+<aside aria-label="Barra lateral">
+  <div class="box">
+    <h2 class="box__title">Escuchando ahora</h2>
+    <p>♫ {nowPlaying.artist} — <em>{nowPlaying.track}</em></p>
+  </div>
+
+  <div class="box">
+    <h2 class="box__title">Leyendo ahora</h2>
+    <p>{nowReading.title}<br /><small>{nowReading.author}</small></p>
+  </div>
+
+  <div class="box">
+    <h2 class="box__title">Enlaces</h2>
+    <ul class="tag-list" style="flex-direction: column; gap: var(--space-2);">
+      <li><a href="https://github.com" rel="noopener noreferrer">GitHub</a></li>
+      <li><a href="/links">todos los enlaces →</a></li>
+    </ul>
+  </div>
+
+  <p><small style="color: var(--color-ink-soft);">last updated: sept. 2026</small></p>
+</aside>
