@@ -8,6 +8,7 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
+    "postbuild": "pagefind --site dist || echo 'Pagefind no se pudo correr en esta plataforma (esperado en Termux/Android) — el resto del sitio se compiló igual.'",
     "preview": "astro preview",
     "astro": "astro"
   },
@@ -31,3 +32,4 @@
     "vite": "^7.3.6"
   }
 }
+ 
