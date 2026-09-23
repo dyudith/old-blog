@@ -1,31 +1,38 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { posts } from '../../lib/mock-data';
+import { getPublishedPosts } from '../../lib/blog';
 
-const sorted = [...posts].sort((a, b) => b.date.localeCompare(a.date));
+const posts = await getPublishedPosts();
 ---
 
 <BaseLayout title="Blog" description="Entradas sobre programación y notas personales.">
   <h1>Blog</h1>
+  <p>
+    <a href="/blog/tags">ver por tags</a> · <a href="/blog/archive">archivo cronológico</a>
+  </p>
+
   <ul class="post-list">
-    {sorted.map((post) => (
+    {posts.map((post) => (
       <li class="box">
-        <a href={`/blog/${post.slug}`}>
-          <h2>{post.title}</h2>
+        <a href={`/blog/${post.id}`}>
+          <h2>{post.data.title}</h2>
         </a>
-        <p><time datetime={post.date}>{post.date}</time></p>
-        <p>{post.description}</p>
+        <p><time datetime={post.data.date.toISOString()}>{post.data.date.toLocaleDateString('es-AR', { year: 'numeric', month: 'long', day: 'numeric' })}</time></p>
+        <p>{post.data.description}</p>
         <ul class="tag-list">
-          {post.tags.map((tag) => <li class="badge">#{tag}</li>)}
+          {post.data.tags.map((tag) => (
+            <li><a class="badge" href={`/blog/tags/${tag}`}>#{tag}</a></li>
+          ))}
         </ul>
       </li>
     ))}
   </ul>
-  <!-- Fase 2: acá se agregará un link a /rss.xml -->
+
+  <p><a href="/rss.xml">suscribirse por RSS →</a></p>
 </BaseLayout>
 
 <style>
   .post-list { list-style: none; padding: 0; display: grid; gap: var(--space-3); }
   .post-list h2 { margin: 0 0 var(--space-2); font-size: 1.1rem; }
-  .post-list a { text-decoration: none; }
+  .post-list a:not(.badge) { text-decoration: none; }
 </style>

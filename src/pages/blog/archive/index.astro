@@ -1,0 +1,32 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { getPublishedPosts, groupPostsByYearAndMonth, monthNames } from '../../../lib/blog';
+
+const posts = await getPublishedPosts();
+const groups = groupPostsByYearAndMonth(posts);
+---
+
+<BaseLayout title="Archivo" description="Todas las entradas del blog, ordenadas cronológicamente.">
+  <h1>Archivo</h1>
+  {groups.map(({ year, months }) => (
+    <section class="box">
+      <h2>{year}</h2>
+      {months.map(({ month, posts: monthPosts }) => (
+        <div>
+          <h3>{monthNames[month]}</h3>
+          <ul>
+            {monthPosts.map((post) => (
+              <li>
+                <time datetime={post.data.date.toISOString()}>
+                  {post.data.date.toLocaleDateString('es-AR', { day: '2-digit' })}
+                </time>
+                {' — '}
+                <a href={`/blog/${post.id}`}>{post.data.title}</a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </section>
+  ))}
+</BaseLayout>

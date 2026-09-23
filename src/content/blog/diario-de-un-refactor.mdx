@@ -1,0 +1,27 @@
+---
+title: "Diario de un refactor que se me fue de las manos"
+description: "Cómo una migración de dos horas terminó en una semana."
+date: 2026-09-20
+tags:
+  - programacion
+draft: false
+---
+
+import Callout from '../../components/astro/Callout.astro';
+
+Iba a ser rápido: "solo" tenía que sacar `mock-data.ts` del medio y pasar el
+blog a Content Collections. Dos horas, calculé.
+
+<Callout type="warning">
+  Spoiler: no fueron dos horas. Pero el resultado quedó bien, así que no me
+  quejo.
+</Callout>
+
+Lo que en el momento parecía sobre-ingeniería —tipar el frontmatter con
+Zod, pensar en `getStaticPaths` para tags y archivo— terminó siendo
+justamente lo que hizo que agregar tags y el archivo cronológico después
+fuera trivial en vez de otro refactor.
+
+Ninguna lección grande acá, más que la de siempre: el tiempo que "perdés"
+modelando bien el contenido se recupera con intereses en la próxima
+feature.

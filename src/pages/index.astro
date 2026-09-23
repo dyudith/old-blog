@@ -1,8 +1,10 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { posts, projects } from '../lib/mock-data';
+import { projects } from '../lib/mock-data';
+import { getPublishedPosts } from '../lib/blog';
 
-const latestPosts = posts.slice(-3).reverse();
+const allPosts = await getPublishedPosts();
+const latestPosts = allPosts.slice(0, 3);
 const featuredProjects = projects.filter((p) => p.featured);
 ---
 
@@ -22,12 +24,12 @@ const featuredProjects = projects.filter((p) => p.featured);
     <ul class="post-list">
       {latestPosts.map((post) => (
         <li class="box">
-          <a href={`/blog/${post.slug}`}>
-            <h3>{post.title}</h3>
+          <a href={`/blog/${post.id}`}>
+            <h3>{post.data.title}</h3>
           </a>
-          <p>{post.description}</p>
+          <p>{post.data.description}</p>
           <ul class="tag-list">
-            {post.tags.map((tag) => <li class="badge">#{tag}</li>)}
+            {post.data.tags.map((tag) => <li class="badge">#{tag}</li>)}
           </ul>
         </li>
       ))}

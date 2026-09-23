@@ -1,0 +1,42 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SearchWidget from '../components/react/SearchWidget';
+---
+
+<BaseLayout title="Buscar" description="Buscar posts, proyectos y contenido del sitio." showSidebar={false}>
+  <h1>Buscar</h1>
+  <SearchWidget client:load />
+</BaseLayout>
+
+<style is:global>
+  .search-input {
+    width: 100%;
+    max-width: 40ch;
+    padding: var(--space-2) var(--space-3);
+    font-family: var(--font-body);
+    font-size: 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-bg-alt);
+    color: var(--color-ink);
+  }
+  .search-hint {
+    color: var(--color-ink-soft);
+    font-size: 0.9rem;
+  }
+  .search-results {
+    list-style: none;
+    padding: 0;
+    margin-top: var(--space-4);
+    display: grid;
+    gap: var(--space-3);
+  }
+  .search-results h2 {
+    margin: 0 0 var(--space-2);
+    font-size: 1.05rem;
+  }
+  .search-results mark {
+    background: color-mix(in srgb, var(--color-accent) 25%, transparent);
+    color: inherit;
+  }
+</style>

@@ -1,15 +1,7 @@
-// Datos mock de Fase 1. En Fase 3 esto se reemplaza por Content Collections
-// (posts) y Supabase (projects, books, music). La forma de estos objetos
-// ya está pensada para parecerse al modelo de datos futuro, para que el
-// reemplazo no rompa los componentes que los consumen.
-
-export interface PostSummary {
-  slug: string;
-  title: string;
-  description: string;
-  date: string; // ISO
-  tags: string[];
-}
+// Datos mock que sobreviven a la Fase 2. Los posts ya migraron a
+// src/content/blog (ver src/lib/blog.ts) y salieron de este archivo.
+// Lo que queda acá (projects, now playing/reading) se reemplaza por
+// Supabase recién en la Fase 3.
 
 export interface Project {
   slug: string;
@@ -21,30 +13,6 @@ export interface Project {
   status: 'active' | 'archived' | 'idea';
   featured: boolean;
 }
-
-export const posts: PostSummary[] = [
-  {
-    slug: 'primer-post',
-    title: 'Mi primer post en esta reconstrucción',
-    description: 'Por qué estoy reviviendo mi rincón de internet en 2026.',
-    date: '2026-09-10',
-    tags: ['personal', 'proyectos'],
-  },
-  {
-    slug: 'islands-en-astro',
-    title: 'Entendiendo las islands de Astro',
-    description: 'Notas mientras aprendo a usar React solo donde hace falta.',
-    date: '2026-09-15',
-    tags: ['programacion', 'astro'],
-  },
-  {
-    slug: 'diario-de-un-refactor',
-    title: 'Diario de un refactor que se me fue de las manos',
-    description: 'Cómo una migración de "dos horas" terminó en una semana.',
-    date: '2026-09-20',
-    tags: ['programacion'],
-  },
-];
 
 export const projects: Project[] = [
   {

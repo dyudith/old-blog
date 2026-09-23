@@ -1,0 +1,46 @@
+---
+title: "Entendiendo las islands de Astro"
+description: "Notas mientras aprendo a usar React solo donde hace falta."
+date: 2026-09-15
+tags:
+  - programacion
+  - astro
+draft: false
+---
+
+import Callout from '../../components/astro/Callout.astro';
+
+Una de las cosas que más me costó entender de Astro al principio fue la
+arquitectura de islands: por qué el framework insiste en que **no** todo
+tiene que ser React.
+
+## La idea central
+
+Astro renderiza todo a HTML en build time por defecto. El JavaScript de un
+componente de UI (React, Vue, Svelte) solo se envía al navegador cuando vos
+lo pedís explícitamente, con una directiva `client:*`:
+
+```astro
+<SearchBox client:load />
+<Comments client:visible />
+```
+
+> Si no le decís nada, el componente se renderiza a HTML estático y no manda
+> ni un byte de JavaScript al cliente.
+
+<Callout type="success">
+  Resultado: un blog con cien posts puede pesar casi lo mismo en JS que una
+  página en blanco, porque casi nada de él necesita interactividad real.
+</Callout>
+
+## Cuándo sí conviene una island
+
+| Caso | ¿Island? |
+| --- | --- |
+| Listado de posts | No |
+| Buscador con estado | Sí |
+| Formulario de guestbook | Sí |
+| Texto de un artículo | No |
+
+Todavía no usé ninguna island en este sitio — y está bien que así sea por
+ahora. Van a aparecer cuando implementemos el buscador y el guestbook.

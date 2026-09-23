@@ -1,37 +1,132 @@
 ---
+import { Image } from 'astro:assets';
+import { render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { posts } from '../../lib/mock-data';
+import {
+  getPublishedPosts,
+  getAdjacentPosts,
+  getRelatedPosts,
+} from '../../lib/blog';
 
-// Fase 1: generamos las rutas estáticas a partir del mock.
-// Fase 2: esto se reemplaza por getStaticPaths() sobre la Content Collection
-// de MDX (getCollection('blog')), y <slot /> pasa a renderizar <Content />.
-export function getStaticPaths() {
+export async function getStaticPaths() {
+  const posts = await getPublishedPosts();
   return posts.map((post) => ({
-    params: { slug: post.slug },
-    props: { post },
+    params: { slug: post.id },
+    props: { post, allPosts: posts },
   }));
 }
 
-const { post } = Astro.props;
+const { post, allPosts } = Astro.props;
+const { Content } = await render(post);
+const { previous, next } = getAdjacentPosts(allPosts, post.id);
+const related = getRelatedPosts(allPosts, post, 3);
 ---
 
-<BaseLayout title={post.title} description={post.description}>
+<BaseLayout
+  title={post.data.title}
+  description={post.data.description}
+  type="article"
+  publishedDate={post.data.date}
+  image={post.data.coverImage?.src}
+  imageAlt={post.data.coverImageAlt}
+>
   <article class="box">
     <header>
-      <h1>{post.title}</h1>
-      <p><time datetime={post.date}>{post.date}</time></p>
+      <h1>{post.data.title}</h1>
+      <p>
+        <time datetime={post.data.date.toISOString()}>
+          {post.data.date.toLocaleDateString('es-AR', { year: 'numeric', month: 'long', day: 'numeric' })}
+        </time>
+      </p>
       <ul class="tag-list">
-        {post.tags.map((tag: string) => <li class="badge">#{tag}</li>)}
+        {post.data.tags.map((tag) => (
+          <li><a class="badge" href={`/blog/tags/${tag}`}>#{tag}</a></li>
+        ))}
       </ul>
     </header>
-    <hr />
-    <p>
-      (Contenido de ejemplo — Fase 1.) Acá va el cuerpo del post. A partir de
-      la Fase 2, este contenido va a venir de un archivo <code>.mdx</code> en
-      <code>src/content/blog/{post.slug}.mdx</code>, lo que va a permitir
-      escribir en Markdown e insertar componentes interactivos dentro del
-      texto.
-    </p>
+
+    {post.data.coverImage && (
+      <Image
+        src={post.data.coverImage}
+        alt={post.data.coverImageAlt ?? ''}
+        width={800}
+        style="border-radius: var(--radius-md); margin-block: var(--space-4);"
+      />
+    )}
+
+    <div class="prose">
+      <Content />
+    </div>
   </article>
+
+  <nav class="post-nav" aria-label="Navegación entre posts">
+    <div>
+      {previous && (
+        <a href={`/blog/${previous.id}`}>← {previous.data.title}</a>
+      )}
+    </div>
+    <div style="text-align: right;">
+      {next && (
+        <a href={`/blog/${next.id}`}>{next.data.title} →</a>
+      )}
+    </div>
+  </nav>
+
+  {related.length > 0 && (
+    <section aria-labelledby="relacionados-heading">
+      <h2 id="relacionados-heading">Posts relacionados</h2>
+      <ul class="tag-list" style="flex-direction: column; align-items: flex-start; gap: var(--space-2);">
+        {related.map((r) => (
+          <li><a href={`/blog/${r.id}`}>{r.data.title}</a></li>
+        ))}
+      </ul>
+    </section>
+  )}
+
   <p><a href="/blog">← volver al blog</a></p>
 </BaseLayout>
+
+<style>
+  /* Tipografía para contenido MDX de largo aliento: line-length y jerarquía
+     legibles, apoyados en los mismos tokens que el resto del sitio. */
+  .prose { max-width: 68ch; }
+  .prose :global(h2) { margin-top: var(--space-5); }
+  .prose :global(h3) { margin-top: var(--space-4); }
+  .prose :global(p) { margin-block: var(--space-3); }
+  .prose :global(ul),
+  .prose :global(ol) { padding-left: 1.3em; }
+  .prose :global(blockquote) {
+    margin: var(--space-4) 0;
+    padding-left: var(--space-3);
+    border-left: 3px solid var(--color-border);
+    color: var(--color-ink-soft);
+    font-style: italic;
+  }
+  .prose :global(pre) {
+    padding: var(--space-3);
+    border-radius: var(--radius-sm);
+    overflow-x: auto;
+    font-size: 0.9rem;
+  }
+  .prose :global(code) { font-family: var(--font-mono); }
+  .prose :global(table) {
+    width: 100%;
+    border-collapse: collapse;
+    margin-block: var(--space-4);
+  }
+  .prose :global(th),
+  .prose :global(td) {
+    border: 1px solid var(--color-border);
+    padding: var(--space-2);
+    text-align: left;
+  }
+
+  .post-nav {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-3);
+    margin-block: var(--space-5);
+    padding-top: var(--space-3);
+    border-top: 1px dashed var(--color-border);
+  }
+</style>
