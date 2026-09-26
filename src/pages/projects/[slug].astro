@@ -1,10 +1,13 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { projects } from '../../lib/mock-data';
+import { getPublishedProjects } from '../../repositories/projects';
 
-// Fase 3: reemplazado por una consulta a la tabla `projects` en Supabase
-// (con prerender = false o generación en build según volumen de datos).
-export function getStaticPaths() {
+// getStaticPaths corre en build time: si Supabase no está configurado
+// (getPublishedProjects devuelve []), simplemente no se genera ninguna
+// ruta de proyecto — el build no falla, solo /projects queda sin detalles
+// hasta que haya credenciales reales.
+export async function getStaticPaths() {
+  const projects = await getPublishedProjects();
   return projects.map((project) => ({
     params: { slug: project.slug },
     props: { project },
@@ -14,16 +17,17 @@ export function getStaticPaths() {
 const { project } = Astro.props;
 ---
 
-<BaseLayout title={project.name} description={project.description}>
+<BaseLayout title={project.name} description={project.description} image={project.image ?? undefined}>
   <article class="box">
     <h1>{project.name}</h1>
     <p>{project.description}</p>
+    {project.long_description && <p>{project.long_description}</p>}
     <ul class="tag-list">
-      {project.technologies.map((tech: string) => <li class="badge">{tech}</li>)}
+      {project.technologies.map((tech) => <li class="badge">{tech}</li>)}
     </ul>
     <p>
       {project.url && <a href={project.url} rel="noopener noreferrer">sitio →</a>}
-      {project.githubUrl && <> · <a href={project.githubUrl} rel="noopener noreferrer">código →</a></>}
+      {project.github_url && <> · <a href={project.github_url} rel="noopener noreferrer">código →</a></>}
     </p>
   </article>
   <p><a href="/projects">← volver a proyectos</a></p>

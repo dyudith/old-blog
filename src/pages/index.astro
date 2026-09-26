@@ -1,11 +1,16 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { projects } from '../lib/mock-data';
+import { getPublishedProjects } from '../repositories/projects';
 import { getPublishedPosts } from '../lib/blog';
 
 const allPosts = await getPublishedPosts();
 const latestPosts = allPosts.slice(0, 3);
-const featuredProjects = projects.filter((p) => p.featured);
+
+// Si Supabase no está configurado, esto devuelve [] (ver repositories/projects.ts)
+// y la sección de proyectos simplemente no se muestra — el resto de la home,
+// que depende solo de MDX, no se ve afectado.
+const allProjects = await getPublishedProjects();
+const featuredProjects = allProjects.filter((p) => p.featured);
 ---
 
 <BaseLayout title="Inicio">
@@ -39,16 +44,20 @@ const featuredProjects = projects.filter((p) => p.featured);
 
   <section aria-labelledby="proyectos-destacados-heading">
     <h2 id="proyectos-destacados-heading">Proyectos destacados</h2>
-    <ul class="post-list">
-      {featuredProjects.map((project) => (
-        <li class="box">
-          <a href={`/projects/${project.slug}`}>
-            <h3>{project.name}</h3>
-          </a>
-          <p>{project.description}</p>
-        </li>
-      ))}
-    </ul>
+    {featuredProjects.length === 0 ? (
+      <p><small style="color: var(--color-ink-soft);">(sin proyectos destacados por ahora)</small></p>
+    ) : (
+      <ul class="post-list">
+        {featuredProjects.map((project) => (
+          <li class="box">
+            <a href={`/projects/${project.slug}`}>
+              <h3>{project.name}</h3>
+            </a>
+            <p>{project.description}</p>
+          </li>
+        ))}
+      </ul>
+    )}
     <p><a href="/projects">ver todos los proyectos →</a></p>
   </section>
 </BaseLayout>

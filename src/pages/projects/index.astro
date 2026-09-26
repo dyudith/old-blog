@@ -1,10 +1,26 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { projects } from '../../lib/mock-data';
+import { getPublishedProjects } from '../../repositories/projects';
+
+// Sigue en output "static": los datos se piden UNA VEZ en build time, no
+// por request. Projects cambia con poca frecuencia (vos lo actualizás vía
+// CMS en Fase 4, no un visitante), así que no hace falta `prerender = false`
+// ni un adapter todavía — eso recién se justifica cuando algo necesite
+// datos distintos en cada request (ej. el guestbook después de que alguien
+// escribe, o el propio /admin).
+const projects = await getPublishedProjects();
 ---
 
 <BaseLayout title="Proyectos" description="Cosas que construí o estoy construyendo.">
   <h1>Proyectos</h1>
+
+  {projects.length === 0 && (
+    <p class="box">
+      Todavía no hay proyectos para mostrar
+      {import.meta.env.DEV && ' (¿configuraste SUPABASE_URL / SUPABASE_ANON_KEY en tu .env?)'}.
+    </p>
+  )}
+
   <ul class="post-list">
     {projects.map((project) => (
       <li class="box">
