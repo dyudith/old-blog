@@ -68,3 +68,39 @@ src/
 ## No incluido todavía (a propósito)
 
 Base de datos, autenticación, CMS, guestbook, comentarios, sync GitHub↔MDX.
+
+
+## Fase 4.1 — autenticación y shell de administración
+
+La primera subfase del CMS agrega un área privada basada en **Supabase Auth**:
+
+- `/admin/login` — inicio de sesión con email y contraseña.
+- `/admin` — panel protegido server-side.
+- `/api/admin/login` — endpoint de autenticación.
+- `/api/admin/logout` — cierre de sesión.
+- `src/middleware.ts` — valida la sesión con `supabase.auth.getUser()` y protege `/admin/*`.
+- `src/lib/supabase/server.ts` — cliente Supabase SSR con cookies.
+- Node adapter para permitir rutas server-rendered sin convertir el contenido público en una SPA.
+
+Todavía no se implementan CRUD, moderación, editor MDX ni publicación a GitHub.
+
+### Configuración local de Fase 4.1
+
+Después de actualizar el repo:
+
+```bash
+npm install
+npm run build
+npm run dev
+```
+
+En Supabase debe existir un usuario administrador en **Authentication → Users**.
+
+Variables necesarias en `.env`:
+
+```env
+SUPABASE_URL=https://tu-proyecto.supabase.co
+SUPABASE_ANON_KEY=tu-anon-key
+```
+
+La `service_role` todavía no participa en esta fase.

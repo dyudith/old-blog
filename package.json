@@ -22,7 +22,9 @@
     "@types/react-dom": "^19.3.0",
     "astro": "^6.4.8",
     "react": "^19.3.0",
-    "react-dom": "^19.3.0"
+    "react-dom": "^19.3.0",
+    "@astrojs/node": "^10.1.2",
+    "@supabase/ssr": "^0.12.7"
   },
   "allowScripts": {
     "esbuild": true,
@@ -33,4 +35,3 @@
     "vite": "^7.3.6"
   }
 }
- 
