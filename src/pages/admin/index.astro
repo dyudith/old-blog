@@ -1,93 +1,29 @@
 ---
 export const prerender = false;
-
 import BaseLayout from '../../layouts/BaseLayout.astro';
-
 const user = Astro.locals.user;
-
-if (!user) {
-  return Astro.redirect('/admin/login');
-}
-
+if (!user) return Astro.redirect('/admin/login');
 const sections = [
-  { href: '/admin/posts', label: 'Posts', status: 'próximamente' },
-  { href: '/admin/projects', label: 'Projects', status: 'próximamente' },
-  { href: '/admin/books', label: 'Books', status: 'próximamente' },
-  { href: '/admin/music', label: 'Music', status: 'próximamente' },
-  { href: '/admin/links', label: 'Links', status: 'próximamente' },
-  { href: '/admin/guestbook', label: 'Guestbook', status: 'próximamente' },
+  { href: '/admin/projects', label: 'Projects', description: 'Proyectos publicados y borradores.', active: true },
+  { href: '/admin/books', label: 'Books', description: 'Libros y estado de lectura.', active: true },
+  { href: '/admin/music', label: 'Music', description: 'Historial y “escuchando ahora”.', active: true },
+  { href: '/admin/links', label: 'Links', description: 'Sitios y recursos guardados.', active: true },
+  { href: '/admin/posts', label: 'Posts', description: 'Editor MDX y publicación con GitHub.', active: false },
+  { href: '/admin/guestbook', label: 'Guestbook', description: 'Moderación de mensajes.', active: false },
 ];
 ---
-
 <BaseLayout title="Admin" showSidebar={false}>
   <section class="admin-header">
-    <div>
-      <p class="eyebrow">área privada</p>
-      <h1>Panel de administración</h1>
-      <p>Sesión activa como <strong>{user.email}</strong>.</p>
-    </div>
-
-    <form method="post" action="/api/admin/logout">
-      <button type="submit">Cerrar sesión</button>
-    </form>
+    <div><p class="eyebrow">CMS</p><h1>Panel de administración</h1><p>Sesión activa como <strong>{user.email}</strong>.</p></div>
+    <form method="post" action="/api/admin/logout"><button type="submit">Cerrar sesión</button></form>
   </section>
-
   <nav aria-label="Secciones de administración" class="admin-grid">
-    {sections.map((section) => (
-      <a class="admin-card box" href={section.href} aria-disabled="true">
-        <strong>{section.label}</strong>
-        <span>{section.status}</span>
-      </a>
-    ))}
+    {sections.map((section) => section.active
+      ? <a class="admin-card box" href={section.href}><strong>{section.label}</strong><span>{section.description}</span></a>
+      : <div class="admin-card box disabled" aria-disabled="true"><strong>{section.label}</strong><span>{section.description}</span><small>próximamente</small></div>
+    )}
   </nav>
 </BaseLayout>
-
 <style>
-  .admin-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: start;
-    gap: var(--space-4);
-    padding-block: var(--space-5);
-  }
-  .eyebrow {
-    margin: 0 0 var(--space-2);
-    font-family: var(--font-mono);
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    color: var(--color-ink-soft);
-  }
-  h1 {
-    margin-bottom: var(--space-2);
-  }
-  button {
-    padding: 0.65rem 1rem;
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-sm);
-    background: var(--color-bg-alt);
-    color: var(--color-ink);
-    font: inherit;
-    cursor: pointer;
-  }
-  .admin-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: var(--space-3);
-  }
-  .admin-card {
-    color: var(--color-ink);
-    text-decoration: none;
-    display: grid;
-    gap: var(--space-2);
-  }
-  .admin-card span {
-    font-family: var(--font-mono);
-    font-size: 0.75rem;
-    color: var(--color-ink-soft);
-  }
-  @media (max-width: 600px) {
-    .admin-header {
-      flex-direction: column;
-    }
-  }
+.admin-header{display:flex;justify-content:space-between;align-items:start;gap:var(--space-4);padding-block:var(--space-5)}.eyebrow{margin:0 0 var(--space-2);font-family:var(--font-mono);font-size:.8rem;text-transform:uppercase;color:var(--color-ink-soft)}h1{margin-bottom:var(--space-2)}button{padding:.65rem 1rem;border:1px solid var(--color-border);border-radius:var(--radius-sm);background:var(--color-bg-alt);color:var(--color-ink);font:inherit;cursor:pointer}.admin-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:var(--space-3)}.admin-card{color:var(--color-ink);text-decoration:none;display:grid;gap:var(--space-2)}.admin-card span,.admin-card small{font-family:var(--font-mono);font-size:.75rem;color:var(--color-ink-soft)}.disabled{opacity:.6}@media(max-width:600px){.admin-header{flex-direction:column}}
 </style>
