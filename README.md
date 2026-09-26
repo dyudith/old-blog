@@ -1,14 +1,17 @@
 # sitio-personal
 
-Sitio personal con estética "old web" (2000–2010) reinterpretada y arquitectura
-moderna. **Fase 1**: fundación — sin base de datos ni CMS todavía.
+Sitio personal con estética "old web" (2000–2010) reinterpretada con arquitectura moderna.
 
-## Stack (Fase 1)
+## Stack
 
-- [Astro](https://astro.build) (`output: 'static'`, el default — sin adapter, sin rutas dinámicas todavía)
-- TypeScript (`strict`)
-- React (integración instalada, sin usarse todavía — reservado para islands futuras)
-- CSS con variables (`src/styles/global.css`) para poder rediseñar sin tocar componentes
+- Astro 6.4.8 + Node adapter para SSR selectivo.
+- TypeScript.
+- React para islands puntuales.
+- MDX para contenido editorial del blog.
+- Supabase/PostgreSQL para datos estructurados.
+- Supabase Auth para el área privada.
+- Pagefind para búsqueda.
+- RSS + sitemap + SEO.
 
 ## Cómo correrlo localmente
 
@@ -19,88 +22,86 @@ npm run dev
 
 Abrí `http://localhost:4321`.
 
-## Cómo verificar que funciona
-
-- `/` — home con presentación, últimos posts y proyectos destacados
-- `/blog` — listado de posts (mock)
-- `/blog/primer-post` (y los otros slugs de `src/lib/mock-data.ts`) — detalle de post
-- `/projects` — listado de proyectos (mock)
-- `/projects/este-sitio` — detalle de proyecto
-- `/about` — página estática
-
-Build de producción:
+Para producción:
 
 ```bash
 npm run build
 npm run preview
 ```
 
-## Estructura
+Pagefind puede no ejecutarse en Termux/Android; el build del resto del sitio sigue siendo verificable.
 
-```
-src/
-  components/
-    astro/     -> Header, Sidebar, Footer (estáticos)
-    react/     -> vacío por ahora, reservado para islands
-  layouts/
-    BaseLayout.astro
-  lib/
-    mock-data.ts   -> datos de ejemplo (posts, projects)
-  pages/
-    index.astro
-    about.astro
-    blog/index.astro, blog/[slug].astro
-    projects/index.astro, projects/[slug].astro
-  styles/
-    global.css     -> design tokens (colores, tipografías, spacing)
-```
+## Arquitectura de contenido
 
-## Qué queda preparado para la Fase 2
+- **MDX + Git:** posts y contenido editorial.
+- **Supabase:** projects, books, music, links y guestbook.
+- **CMS privado:** administra las entidades estructuradas desde `/admin`.
+- **Posts:** el editor MDX y la publicación automática a GitHub quedan para la siguiente subfase.
 
-- `mock-data.ts` tiene la misma forma que tendrá el contenido real, para que
-  migrar a Content Collections (MDX) no rompa los componentes.
-- Comentarios en el código marcan explícitamente dónde entra MDX
-  (`blog/[slug].astro`), dónde entra Supabase (`projects/[slug].astro`) y
-  dónde se agregará RSS/sitemap.
-- `astro.config.mjs` documenta por qué no se usa `output: 'hybrid'` (removido
-  en Astro 5) y cómo se van a agregar rutas dinámicas más adelante.
+## Fase 3 — Supabase
 
-## No incluido todavía (a propósito)
+Las migraciones están en `supabase/migrations/` y el seed en `supabase/seed.sql`.
 
-Base de datos, autenticación, CMS, guestbook, comentarios, sync GitHub↔MDX.
+Las páginas públicas leen Supabase a través de repositories en `src/repositories/`; no consultan la base directamente.
 
+## Fase 4.1 — autenticación
 
-## Fase 4.1 — autenticación y shell de administración
-
-La primera subfase del CMS agrega un área privada basada en **Supabase Auth**:
-
-- `/admin/login` — inicio de sesión con email y contraseña.
+- `/admin/login` — inicio de sesión con Supabase Auth.
 - `/admin` — panel protegido server-side.
-- `/api/admin/login` — endpoint de autenticación.
-- `/api/admin/logout` — cierre de sesión.
-- `src/middleware.ts` — valida la sesión con `supabase.auth.getUser()` y protege `/admin/*`.
-- `src/lib/supabase/server.ts` — cliente Supabase SSR con cookies.
-- Node adapter para permitir rutas server-rendered sin convertir el contenido público en una SPA.
+- `/api/admin/login` y `/api/admin/logout`.
+- `src/middleware.ts` — valida la sesión.
+- `src/lib/supabase/server.ts` — bridge SSR compatible con las cookies de Astro 6.
 
-Todavía no se implementan CRUD, moderación, editor MDX ni publicación a GitHub.
+En Supabase debe existir el usuario administrador en **Authentication → Users**.
 
-### Configuración local de Fase 4.1
+## Fase 4.2 — CMS estructurado
 
-Después de actualizar el repo:
+Ya están disponibles:
 
-```bash
-npm install
-npm run build
-npm run dev
-```
+- `/admin/projects` — crear, editar, publicar/despublicar y eliminar proyectos.
+- `/admin/books` — gestionar libros y estado de lectura.
+- `/admin/music` — historial y “escuchando ahora”.
+- `/admin/links` — gestionar enlaces.
 
-En Supabase debe existir un usuario administrador en **Authentication → Users**.
+El CRUD usa endpoints server-only y la `service_role` nunca se envía al navegador.
 
 Variables necesarias en `.env`:
 
 ```env
 SUPABASE_URL=https://tu-proyecto.supabase.co
 SUPABASE_ANON_KEY=tu-anon-key
+SUPABASE_SERVICE_ROLE_KEY=tu-service-role-key
 ```
 
-La `service_role` todavía no participa en esta fase.
+La `service_role` debe permanecer únicamente en el servidor. Nunca la pongas en una variable `PUBLIC_*` ni en código cliente.
+
+## Próximas subfases
+
+- 4.3 — moderación del guestbook.
+- 4.4 — CMS de posts, borradores y preview MDX.
+- 4.5 — publicación MDX → GitHub → deploy.
+- 4.6 — storage de imágenes.
+
+## Estructura relevante
+
+```
+src/
+  components/
+    astro/
+    react/
+  layouts/
+  lib/
+    supabase/
+  repositories/
+  content/
+    blog/
+  pages/
+    admin/
+    api/admin/
+    blog/
+    projects/
+  styles/
+supabase/
+  migrations/
+  seed.sql
+```
