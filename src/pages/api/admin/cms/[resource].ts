@@ -34,8 +34,18 @@ export const POST: APIRoute = async ({ params, request, cookies, redirect }) => 
 
   try {
     if (action === 'delete') {
-      const { error } = await db.from(resource).delete().eq('id', id);
-      if (error) throw error;
+      if (!id) return new Response('Falta el id', { status: 400 });
+
+      const result =
+        resource === 'projects'
+          ? await db.from('projects').delete().eq('id', id)
+          : resource === 'books'
+            ? await db.from('books').delete().eq('id', id)
+            : resource === 'music'
+              ? await db.from('music_entries').delete().eq('id', id)
+              : await db.from('links').delete().eq('id', id);
+
+      if (result.error) throw result.error;
       return redirect(`/admin/${resource}`, 303);
     }
 
