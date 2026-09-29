@@ -1,0 +1,42 @@
+# Supabase local development configuration.
+# This file is safe to commit. Do not put API keys or passwords here.
+
+project_id = "old-blog"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public", "storage"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 17
+
+[db.migrations]
+enabled = true
+schema_paths = []
+
+[db.seed]
+enabled = false
+
+[studio]
+enabled = true
+port = 54323
+
+[inbucket]
+enabled = true
+port = 54324
+
+[auth]
+enabled = true
+site_url = "http://localhost:4321"
+additional_redirect_urls = ["http://localhost:4321/**"]
+enable_signup = true
+jwt_expiry = 3600
+
+[auth.email]
+enable_signup = true
+enable_confirmations = false
