@@ -1,0 +1,118 @@
+---
+export const prerender = false;
+
+import BaseLayout from '../../../../layouts/BaseLayout.astro';
+import { createSupabaseServerClient } from '../../../../lib/supabase/server';
+
+const supabase = createSupabaseServerClient(Astro.cookies, Astro.request);
+const { data: { user } } = await supabase.auth.getUser();
+
+if (!user) {
+  return Astro.redirect('/admin/login');
+}
+
+const { id } = Astro.params;
+const { data: project, error } = await supabase
+  .from('projects')
+  .select('*')
+  .eq('id', id)
+  .maybeSingle();
+
+if (error || !project) {
+  return Astro.redirect('/admin/projects');
+}
+
+const technologies = project.technologies.join(', ');
+---
+
+<BaseLayout title={`Admin — Editar ${project.name}`} showSidebar={false}>
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">CMS / Projects</p>
+      <h1>Editar proyecto</h1>
+    </div>
+    <a href="/admin/projects">← Projects</a>
+  </header>
+
+  <form class="box form" method="post" action={`/api/admin/projects/update`}>
+    <input type="hidden" name="id" value={project.id} />
+
+    <label>
+      Nombre
+      <input name="name" required maxlength="120" value={project.name} />
+    </label>
+
+    <label>
+      Slug
+      <input name="slug" required maxlength="120" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" value={project.slug} />
+    </label>
+
+    <label>
+      Descripción corta
+      <textarea name="description" required maxlength="500" rows="3">{project.description}</textarea>
+    </label>
+
+    <label>
+      Descripción larga
+      <textarea name="long_description" rows="6">{project.long_description ?? ''}</textarea>
+    </label>
+
+    <label>
+      Imagen
+      <input name="image" type="url" value={project.image ?? ''} />
+    </label>
+
+    <label>
+      Sitio
+      <input name="url" type="url" value={project.url ?? ''} />
+    </label>
+
+    <label>
+      GitHub
+      <input name="github_url" type="url" value={project.github_url ?? ''} />
+    </label>
+
+    <label>
+      Tecnologías
+      <input name="technologies" value={technologies} />
+      <small>Separalas con comas.</small>
+    </label>
+
+    <label>
+      Estado
+      <select name="status">
+        <option value="idea" selected={project.status === 'idea'}>Idea</option>
+        <option value="active" selected={project.status === 'active'}>Activo</option>
+        <option value="archived" selected={project.status === 'archived'}>Archivado</option>
+      </select>
+    </label>
+
+    <label class="check">
+      <input type="checkbox" name="featured" checked={project.featured} />
+      Proyecto destacado
+    </label>
+
+    <label class="check">
+      <input type="checkbox" name="published" checked={project.published} />
+      Publicado
+    </label>
+
+    <div class="form-actions">
+      <button type="submit">Guardar cambios</button>
+      <a href="/admin/projects">Cancelar</a>
+    </div>
+  </form>
+</BaseLayout>
+
+<style>
+  .page-header { display:flex; justify-content:space-between; align-items:center; gap:var(--space-4); padding-block:var(--space-5); }
+  .eyebrow { margin:0 0 var(--space-2); font-family:var(--font-mono); font-size:.8rem; text-transform:uppercase; color:var(--color-ink-soft); }
+  .form { display:grid; gap:var(--space-4); max-width:760px; margin-inline:auto; }
+  label { display:grid; gap:var(--space-2); font-family:var(--font-heading); font-weight:600; }
+  input, textarea, select { width:100%; padding:.7rem .75rem; border:1px solid var(--color-border); border-radius:var(--radius-sm); background:var(--color-bg); color:var(--color-ink); font:inherit; }
+  small { color:var(--color-ink-soft); font-family:var(--font-body); font-weight:400; }
+  .check { display:flex; flex-direction:row; align-items:center; font-family:var(--font-body); font-weight:400; }
+  .check input { width:auto; }
+  .form-actions { display:flex; gap:var(--space-3); align-items:center; }
+  button { padding:.65rem 1rem; border:1px solid var(--color-accent-strong); border-radius:var(--radius-sm); background:var(--color-accent); color:white; font:inherit; cursor:pointer; }
+</style>
