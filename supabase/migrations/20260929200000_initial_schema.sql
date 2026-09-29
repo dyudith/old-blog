@@ -173,3 +173,31 @@ on public.guestbook_entries
 for insert
 to anon, authenticated
 with check (status = 'pending');
+
+
+-- The current CMS admin is protected by Supabase Auth and there is no public
+-- signup flow in the application. Authenticated users can therefore manage
+-- projects through the server-side admin routes. If additional user-facing
+-- authentication is introduced later, replace these policies with an explicit
+-- admin-role policy before granting CMS access to those users.
+drop policy if exists "Authenticated users can create projects" on public.projects;
+create policy "Authenticated users can create projects"
+on public.projects
+for insert
+to authenticated
+with check (true);
+
+drop policy if exists "Authenticated users can update projects" on public.projects;
+create policy "Authenticated users can update projects"
+on public.projects
+for update
+to authenticated
+using (true)
+with check (true);
+
+drop policy if exists "Authenticated users can delete projects" on public.projects;
+create policy "Authenticated users can delete projects"
+on public.projects
+for delete
+to authenticated
+using (true);
