@@ -53,6 +53,25 @@ SUPABASE_ANON_KEY=tu-anon-key
 
 No subas `.env` ni claves al repositorio.
 
+## Fase 4.2 — CMS de Projects
+
+El panel privado ya incluye CRUD para proyectos:
+
+- `/admin/projects` — listado de proyectos.
+- `/admin/projects/new` — crear proyectos.
+- `/admin/projects/:id/edit` — editar proyectos.
+- Publicar/despublicar y marcar como destacado.
+- Eliminar proyectos.
+- Los proyectos públicos se renderizan server-side para que los cambios del CMS no requieran regenerar manualmente las páginas.
+
+Para aplicar las nuevas políticas RLS después de actualizar el repo:
+
+```bash
+npx supabase db push
+```
+
+La migración `20260929200000_initial_schema.sql` ya aplicada no debe modificarse. Los cambios posteriores se agregan como nuevas migraciones.
+
 ## Auth
 
 Debe existir un usuario administrador en **Supabase → Authentication → Users**.
