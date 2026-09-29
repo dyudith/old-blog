@@ -1,14 +1,15 @@
 # sitio-personal
 
-Sitio personal con estética "old web" (2000–2010) reinterpretada y arquitectura
-moderna. **Fase 1**: fundación — sin base de datos ni CMS todavía.
+Sitio personal con estética "old web" (2000–2010) reinterpretada y arquitectura moderna.
 
-## Stack (Fase 1)
+## Stack
 
-- [Astro](https://astro.build) (`output: 'static'`, el default — sin adapter, sin rutas dinámicas todavía)
-- TypeScript (`strict`)
-- React (integración instalada, sin usarse todavía — reservado para islands futuras)
-- CSS con variables (`src/styles/global.css`) para poder rediseñar sin tocar componentes
+- Astro 6
+- TypeScript
+- React
+- MDX
+- Supabase
+- Supabase CLI para schema y migraciones
 
 ## Cómo correrlo localmente
 
@@ -19,88 +20,50 @@ npm run dev
 
 Abrí `http://localhost:4321`.
 
-## Cómo verificar que funciona
+## Supabase
 
-- `/` — home con presentación, últimos posts y proyectos destacados
-- `/blog` — listado de posts (mock)
-- `/blog/primer-post` (y los otros slugs de `src/lib/mock-data.ts`) — detalle de post
-- `/projects` — listado de proyectos (mock)
-- `/projects/este-sitio` — detalle de proyecto
-- `/about` — página estática
+El schema de PostgreSQL está versionado en `supabase/migrations/`. Astro no crea las tablas automáticamente al conectarse a Supabase: las migraciones son las que crean y modifican el schema.
 
-Build de producción:
+Después de hacer pull del repo, la primera configuración del proyecto local es:
 
 ```bash
-npm run build
-npm run preview
+supabase login
+supabase link --project-ref <tu-project-ref>
+supabase db push
 ```
 
-## Estructura
+El `project-ref` es el identificador que aparece en la URL del proyecto de Supabase.
 
-```
-src/
-  components/
-    astro/     -> Header, Sidebar, Footer (estáticos)
-    react/     -> vacío por ahora, reservado para islands
-  layouts/
-    BaseLayout.astro
-  lib/
-    mock-data.ts   -> datos de ejemplo (posts, projects)
-  pages/
-    index.astro
-    about.astro
-    blog/index.astro, blog/[slug].astro
-    projects/index.astro, projects/[slug].astro
-  styles/
-    global.css     -> design tokens (colores, tipografías, spacing)
-```
-
-## Qué queda preparado para la Fase 2
-
-- `mock-data.ts` tiene la misma forma que tendrá el contenido real, para que
-  migrar a Content Collections (MDX) no rompa los componentes.
-- Comentarios en el código marcan explícitamente dónde entra MDX
-  (`blog/[slug].astro`), dónde entra Supabase (`projects/[slug].astro`) y
-  dónde se agregará RSS/sitemap.
-- `astro.config.mjs` documenta por qué no se usa `output: 'hybrid'` (removido
-  en Astro 5) y cómo se van a agregar rutas dinámicas más adelante.
-
-## No incluido todavía (a propósito)
-
-Base de datos, autenticación, CMS, guestbook, comentarios, sync GitHub↔MDX.
-
-
-## Fase 4.1 — autenticación y shell de administración
-
-La primera subfase del CMS agrega un área privada basada en **Supabase Auth**:
-
-- `/admin/login` — inicio de sesión con email y contraseña.
-- `/admin` — panel protegido server-side.
-- `/api/admin/login` — endpoint de autenticación.
-- `/api/admin/logout` — cierre de sesión.
-- `src/middleware.ts` — valida la sesión con `supabase.auth.getUser()` y protege `/admin/*`.
-- `src/lib/supabase/server.ts` — cliente Supabase SSR con cookies.
-- Node adapter para permitir rutas server-rendered sin convertir el contenido público en una SPA.
-
-Todavía no se implementan CRUD, moderación, editor MDX ni publicación a GitHub.
-
-### Configuración local de Fase 4.1
-
-Después de actualizar el repo:
+Para comprobar qué migraciones están aplicadas:
 
 ```bash
-npm install
-npm run build
-npm run dev
+supabase migration list
 ```
 
-En Supabase debe existir un usuario administrador en **Authentication → Users**.
+Después de modificar el schema, los cambios deben hacerse mediante una nueva migración y luego aplicarse con `supabase db push`. No hagas cambios estructurales directamente en el Dashboard una vez que el proyecto esté gestionado con migraciones.
 
-Variables necesarias en `.env`:
+### Variables de Astro
+
+En `.env`:
 
 ```env
 SUPABASE_URL=https://tu-proyecto.supabase.co
 SUPABASE_ANON_KEY=tu-anon-key
 ```
 
-La `service_role` todavía no participa en esta fase.
+No subas `.env` ni claves al repositorio.
+
+## Auth
+
+Debe existir un usuario administrador en **Supabase → Authentication → Users**.
+
+El área `/admin` ya valida la sesión server-side. El CRUD todavía está pendiente; por ahora las migraciones dejan RLS preparado para lectura pública del contenido publicado y para enviar entradas pendientes al guestbook.
+
+## Build
+
+```bash
+npm run build
+npm run preview
+```
+
+En Termux/Android, Pagefind puede no ejecutarse por su binario nativo; el resto del build puede completarse igualmente.
