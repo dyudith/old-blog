@@ -1,15 +1,17 @@
 # sitio-personal
 
-Sitio personal con estética "old web" (2000–2010) reinterpretada y arquitectura moderna.
+Sitio personal con estética "old web" (2000–2010) reinterpretada con arquitectura moderna.
 
 ## Stack
 
-- Astro 6
-- TypeScript
-- React
-- MDX
-- Supabase
-- Supabase CLI para schema y migraciones
+- Astro 6.4.8 + Node adapter para SSR selectivo.
+- TypeScript.
+- React para islands puntuales.
+- MDX para contenido editorial del blog.
+- Supabase/PostgreSQL para datos estructurados.
+- Supabase Auth para el área privada.
+- Pagefind para búsqueda.
+- RSS + sitemap + SEO.
 
 ## Cómo correrlo localmente
 
@@ -20,11 +22,7 @@ npm run dev
 
 Abrí `http://localhost:4321`.
 
-## Supabase
-
-El schema de PostgreSQL está versionado en `supabase/migrations/`. Astro no crea las tablas automáticamente al conectarse a Supabase: las migraciones son las que crean y modifican el schema.
-
-Después de hacer pull del repo, la primera configuración del proyecto local es:
+Para producción:
 
 ```bash
 supabase login
@@ -32,19 +30,18 @@ supabase link --project-ref <tu-project-ref>
 supabase db push
 ```
 
-El `project-ref` es el identificador que aparece en la URL del proyecto de Supabase.
+Pagefind puede no ejecutarse en Termux/Android; el build del resto del sitio sigue siendo verificable.
 
-Para comprobar qué migraciones están aplicadas:
+## Arquitectura de contenido
 
-```bash
-supabase migration list
-```
+- **MDX + Git:** posts y contenido editorial.
+- **Supabase:** projects, books, music, links y guestbook.
+- **CMS privado:** administra las entidades estructuradas desde `/admin`.
+- **Posts:** el editor MDX y la publicación automática a GitHub quedan para la siguiente subfase.
 
-Después de modificar el schema, los cambios deben hacerse mediante una nueva migración y luego aplicarse con `supabase db push`. No hagas cambios estructurales directamente en el Dashboard una vez que el proyecto esté gestionado con migraciones.
+## Fase 3 — Supabase
 
-### Variables de Astro
-
-En `.env`:
+Las migraciones están en `supabase/migrations/` y el seed en `supabase/seed.sql`.
 
 ```env
 SUPABASE_URL=https://tu-proyecto.supabase.co
@@ -55,18 +52,17 @@ GITHUB_REPOSITORY=dyudith/old-blog
 GITHUB_BRANCH=main
 ```
 
-No subas `.env` ni claves al repositorio.
+## Fase 4.1 — autenticación
 
-## Fase 4.2 — CMS de Projects
+- `/admin/login` — inicio de sesión con Supabase Auth.
+- `/admin` — panel protegido server-side.
+- `/api/admin/login` y `/api/admin/logout`.
+- `src/middleware.ts` — valida la sesión.
+- `src/lib/supabase/server.ts` — bridge SSR compatible con las cookies de Astro 6.
 
-El panel privado ya incluye CRUD para proyectos:
+En Supabase debe existir el usuario administrador en **Authentication → Users**.
 
-- `/admin/projects` — listado de proyectos.
-- `/admin/projects/new` — crear proyectos.
-- `/admin/projects/:id/edit` — editar proyectos.
-- Publicar/despublicar y marcar como destacado.
-- Eliminar proyectos.
-- Los proyectos públicos se renderizan server-side para que los cambios del CMS no requieran regenerar manualmente las páginas.
+## Fase 4.2 — CMS estructurado
 
 La migración `20260929200000_initial_schema.sql` ya aplicada no debe modificarse. Los cambios posteriores se agregan como nuevas migraciones.
 
@@ -93,15 +89,41 @@ El CMS hace un commit por cada operación de contenido. Los cambios pasan a form
 
 ## Auth
 
-Debe existir un usuario administrador en **Supabase → Authentication → Users**.
+```env
+SUPABASE_URL=https://tu-proyecto.supabase.co
+SUPABASE_ANON_KEY=tu-anon-key
+SUPABASE_SERVICE_ROLE_KEY=tu-service-role-key
+```
+
+La `service_role` debe permanecer únicamente en el servidor. Nunca la pongas en una variable `PUBLIC_*` ni en código cliente.
 
 El área `/admin` valida la sesión server-side. Projects y Posts requieren una sesión autenticada.
 
-## Build
+- 4.3 — moderación del guestbook.
+- 4.4 — CMS de posts, borradores y preview MDX.
+- 4.5 — publicación MDX → GitHub → deploy.
+- 4.6 — storage de imágenes.
 
-```bash
-npm run build
-npm run preview
+## Estructura relevante
+
 ```
-
-En Termux/Android, Pagefind puede no ejecutarse por su binario nativo; el resto del build puede completarse igualmente.
+src/
+  components/
+    astro/
+    react/
+  layouts/
+  lib/
+    supabase/
+  repositories/
+  content/
+    blog/
+  pages/
+    admin/
+    api/admin/
+    blog/
+    projects/
+  styles/
+supabase/
+  migrations/
+  seed.sql
+```

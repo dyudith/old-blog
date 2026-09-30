@@ -12,7 +12,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
     return redirect('/admin/login?error=Completa%20email%20y%20contrase%C3%B1a', 303);
   }
 
-  const supabase = createSupabaseServerClient(cookies, request);
+  const supabase = createSupabaseServerClient(request, cookies);
   const { error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {

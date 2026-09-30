@@ -4,7 +4,7 @@ import { createSupabaseServerClient } from '../../../lib/supabase/server';
 export const prerender = false;
 
 export const POST: APIRoute = async ({ request, cookies, redirect }) => {
-  const supabase = createSupabaseServerClient(cookies, request);
+  const supabase = createSupabaseServerClient(request, cookies);
   await supabase.auth.signOut();
 
   return redirect('/admin/login', 303);
