@@ -28,9 +28,9 @@ export type BlogPostFile = {
 };
 
 function getConfig() {
-  const token = process.env.GITHUB_TOKEN;
-  const repository = process.env.GITHUB_REPOSITORY || 'dyudith/old-blog';
-  const branch = process.env.GITHUB_BRANCH || 'main';
+  const token = import.meta.env.GITHUB_TOKEN;
+  const repository = import.meta.env.GITHUB_REPOSITORY || 'dyudith/old-blog';
+  const branch = import.meta.env.GITHUB_BRANCH || 'main';
 
   if (!token) {
     throw new Error('Falta configurar GITHUB_TOKEN para el CMS de Posts.');
