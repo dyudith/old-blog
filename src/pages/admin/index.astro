@@ -19,10 +19,17 @@ const sections = [
   </section>
   <nav aria-label="Secciones de administración" class="admin-grid">
     {sections.map((section) => (
-      <a class="admin-card box" href={section.href}>
-        <strong>{section.label}</strong>
-        <span>{section.status}</span>
-      </a>
+      section.active ? (
+        <a class="admin-card box" href={section.href}>
+          <strong>{section.label}</strong>
+          <span>{section.description}</span>
+        </a>
+      ) : (
+        <div class="admin-card box disabled" aria-disabled="true">
+          <strong>{section.label}</strong>
+          <span>{section.description}</span>
+        </div>
+      )
     ))}
   </nav>
 </BaseLayout>
