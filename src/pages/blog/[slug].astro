@@ -1,7 +1,6 @@
 ---
-import { Image } from 'astro:assets';
-import { render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { render } from 'astro:content';
 import {
   getPublishedPosts,
   getAdjacentPosts,
@@ -20,6 +19,8 @@ const { post, allPosts } = Astro.props;
 const { Content } = await render(post);
 const { previous, next } = getAdjacentPosts(allPosts, post.id);
 const related = getRelatedPosts(allPosts, post, 3);
+const coverImage = post.data.coverImage ?? '/default-cover.svg';
+const coverImageAlt = post.data.coverImageAlt ?? 'Portada predeterminada de OldBlog';
 ---
 
 <BaseLayout
@@ -27,8 +28,8 @@ const related = getRelatedPosts(allPosts, post, 3);
   description={post.data.description}
   type="article"
   publishedDate={post.data.date}
-  image={post.data.coverImage?.src}
-  imageAlt={post.data.coverImageAlt}
+  image={coverImage}
+  imageAlt={coverImageAlt}
 >
   <article class="box">
     <header>
@@ -45,14 +46,13 @@ const related = getRelatedPosts(allPosts, post, 3);
       </ul>
     </header>
 
-    {post.data.coverImage && (
-      <Image
-        src={post.data.coverImage}
-        alt={post.data.coverImageAlt ?? ''}
-        width={800}
-        style="border-radius: var(--radius-md); margin-block: var(--space-4);"
-      />
-    )}
+    <img
+      src={coverImage}
+      alt={coverImageAlt}
+      width="1200"
+      height="630"
+      class="cover"
+    />
 
     <div class="prose">
       <Content />
@@ -61,14 +61,10 @@ const related = getRelatedPosts(allPosts, post, 3);
 
   <nav class="post-nav" aria-label="Navegación entre posts">
     <div>
-      {previous && (
-        <a href={`/blog/${previous.id}`}>← {previous.data.title}</a>
-      )}
+      {previous && <a href={`/blog/${previous.id}`}>← {previous.data.title}</a>}
     </div>
     <div style="text-align: right;">
-      {next && (
-        <a href={`/blog/${next.id}`}>{next.data.title} →</a>
-      )}
+      {next && <a href={`/blog/${next.id}`}>{next.data.title} →</a>}
     </div>
   </nav>
 
@@ -87,46 +83,16 @@ const related = getRelatedPosts(allPosts, post, 3);
 </BaseLayout>
 
 <style>
-  /* Tipografía para contenido MDX de largo aliento: line-length y jerarquía
-     legibles, apoyados en los mismos tokens que el resto del sitio. */
+  .cover { display:block; width:100%; max-height:630px; object-fit:cover; border-radius:var(--radius-md); margin-block:var(--space-4); }
   .prose { max-width: 68ch; }
   .prose :global(h2) { margin-top: var(--space-5); }
   .prose :global(h3) { margin-top: var(--space-4); }
   .prose :global(p) { margin-block: var(--space-3); }
-  .prose :global(ul),
-  .prose :global(ol) { padding-left: 1.3em; }
-  .prose :global(blockquote) {
-    margin: var(--space-4) 0;
-    padding-left: var(--space-3);
-    border-left: 3px solid var(--color-border);
-    color: var(--color-ink-soft);
-    font-style: italic;
-  }
-  .prose :global(pre) {
-    padding: var(--space-3);
-    border-radius: var(--radius-sm);
-    overflow-x: auto;
-    font-size: 0.9rem;
-  }
+  .prose :global(ul), .prose :global(ol) { padding-left: 1.3em; }
+  .prose :global(blockquote) { margin: var(--space-4) 0; padding-left: var(--space-3); border-left: 3px solid var(--color-border); color: var(--color-ink-soft); font-style: italic; }
+  .prose :global(pre) { padding: var(--space-3); border-radius: var(--radius-sm); overflow-x: auto; font-size: 0.9rem; }
   .prose :global(code) { font-family: var(--font-mono); }
-  .prose :global(table) {
-    width: 100%;
-    border-collapse: collapse;
-    margin-block: var(--space-4);
-  }
-  .prose :global(th),
-  .prose :global(td) {
-    border: 1px solid var(--color-border);
-    padding: var(--space-2);
-    text-align: left;
-  }
-
-  .post-nav {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--space-3);
-    margin-block: var(--space-5);
-    padding-top: var(--space-3);
-    border-top: 1px dashed var(--color-border);
-  }
+  .prose :global(table) { width: 100%; border-collapse: collapse; margin-block: var(--space-4); }
+  .prose :global(th), .prose :global(td) { border: 1px solid var(--color-border); padding: var(--space-2); text-align: left; }
+  .post-nav { display:grid; grid-template-columns:1fr 1fr; gap:var(--space-3); margin-block:var(--space-5); padding-top:var(--space-3); border-top:1px dashed var(--color-border); }
 </style>
