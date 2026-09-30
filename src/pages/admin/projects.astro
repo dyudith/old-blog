@@ -1,0 +1,45 @@
+---
+export const prerender = false;
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { createSupabaseAdminClient } from '../../lib/supabase/admin';
+
+const db = createSupabaseAdminClient();
+const editId = Astro.url.searchParams.get('edit');
+const error = Astro.url.searchParams.get('error');
+const { data: projects, error: listError } = await db.from('projects').select('*').order('created_at', { ascending: false });
+const { data: editing } = editId
+  ? await db.from('projects').select('*').eq('id', editId).maybeSingle()
+  : { data: null };
+---
+<BaseLayout title="Admin — Projects" showSidebar={false}>
+  <p><a href="/admin">← Admin</a></p>
+  <header class="admin-header"><div><p class="eyebrow">CMS</p><h1>Projects</h1><p>Administrá los proyectos que aparecen en el sitio.</p></div></header>
+  {error && <p class="error" role="alert">{error}</p>}
+  {listError && <p class="error" role="alert">{listError.message}</p>}
+  <section class="box">
+    <h2>{editing ? 'Editar proyecto' : 'Nuevo proyecto'}</h2>
+    <form method="post" action="/api/admin/cms/projects" class="form">
+      <input type="hidden" name="_action" value="save" />
+      {editing && <input type="hidden" name="id" value={editing.id} />}
+      <label>Nombre<input name="name" required value={editing?.name ?? ''} /></label>
+      <label>Slug<input name="slug" required value={editing?.slug ?? ''} /></label>
+      <label>Descripción<input name="description" required value={editing?.description ?? ''} /></label>
+      <label>Descripción larga<textarea name="long_description">{editing?.long_description ?? ''}</textarea></label>
+      <label>Tecnologías <small>separadas por coma</small><input name="technologies" value={editing?.technologies.join(', ') ?? ''} /></label>
+      <label>Imagen<input name="image" type="url" value={editing?.image ?? ''} /></label>
+      <label>URL<input name="url" type="url" value={editing?.url ?? ''} /></label>
+      <label>GitHub<input name="github_url" type="url" value={editing?.github_url ?? ''} /></label>
+      <label>Estado<select name="status"><option value="active" selected={editing?.status === 'active'}>Activo</option><option value="idea" selected={editing?.status === 'idea'}>Idea</option><option value="archived" selected={editing?.status === 'archived'}>Archivado</option></select></label>
+      <label class="check"><input type="checkbox" name="featured" checked={editing?.featured ?? false} /> Destacado</label>
+      <label class="check"><input type="checkbox" name="published" checked={editing?.published ?? true} /> Publicado</label>
+      <div class="actions"><button type="submit">Guardar</button>{editing && <a href="/admin/projects">Cancelar</a>}</div>
+    </form>
+  </section>
+  <section>
+    <h2>Proyectos ({projects?.length ?? 0})</h2>
+    <div class="list">{projects?.map((project) => <article class="box item"><div><strong>{project.name}</strong><small>{project.slug} · {project.published ? 'publicado' : 'borrador'}</small></div><div class="actions"><a href={`/admin/projects?edit=${project.id}`}>Editar</a><form method="post" action="/api/admin/cms/projects"><input type="hidden" name="_action" value="delete" /><input type="hidden" name="id" value={project.id} /><button type="submit" onclick="return confirm('¿Eliminar este proyecto?')">Eliminar</button></form></div></article>)}</div>
+  </section>
+</BaseLayout>
+<style>
+.admin-header{padding-block:var(--space-3)}.eyebrow{font-family:var(--font-mono);text-transform:uppercase;color:var(--color-ink-soft);font-size:.8rem}.form{display:grid;gap:var(--space-3)}label{display:grid;gap:.35rem;font-weight:600}input,textarea,select{width:100%;padding:.65rem;border:1px solid var(--color-border);border-radius:var(--radius-sm);background:var(--color-bg);color:var(--color-ink);font:inherit}textarea{min-height:110px;resize:vertical}small{display:block;font-weight:400;color:var(--color-ink-soft)}.check{display:flex;grid-template-columns:auto 1fr;display:flex;gap:.5rem;align-items:center}.check input{width:auto}.actions{display:flex;gap:.75rem;align-items:center}.actions button,.actions a{padding:.55rem .8rem;border:1px solid var(--color-border);border-radius:var(--radius-sm);background:var(--color-bg-alt);color:var(--color-ink);font:inherit;text-decoration:none;cursor:pointer}.list{display:grid;gap:var(--space-2)}.item{display:flex;justify-content:space-between;gap:var(--space-3);align-items:center}.item small{margin-top:.25rem}.error{padding:var(--space-2);border:1px solid #b34a4a;color:#8d2f2f}
+</style>
