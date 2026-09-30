@@ -49,6 +49,10 @@ En `.env`:
 ```env
 SUPABASE_URL=https://tu-proyecto.supabase.co
 SUPABASE_ANON_KEY=tu-anon-key
+
+GITHUB_TOKEN=tu-github-token
+GITHUB_REPOSITORY=dyudith/old-blog
+GITHUB_BRANCH=main
 ```
 
 No subas `.env` ni claves al repositorio.
@@ -64,19 +68,34 @@ El panel privado ya incluye CRUD para proyectos:
 - Eliminar proyectos.
 - Los proyectos públicos se renderizan server-side para que los cambios del CMS no requieran regenerar manualmente las páginas.
 
-Para aplicar las nuevas políticas RLS después de actualizar el repo:
-
-```bash
-npx supabase db push
-```
-
 La migración `20260929200000_initial_schema.sql` ya aplicada no debe modificarse. Los cambios posteriores se agregan como nuevas migraciones.
+
+## Fase 4.4 — CMS de Posts
+
+Los posts siguen siendo contenido editorial MDX en `src/content/blog/`. El CMS no los mueve a Supabase: el panel privado usa la GitHub Contents API para leer, crear, editar y eliminar los archivos MDX.
+
+Rutas:
+
+- `/admin/posts` — listado de posts.
+- `/admin/posts/new` — crear un post.
+- `/admin/posts/edit?path=...` — editar un post.
+- `/api/admin/posts/create` — creación server-side.
+- `/api/admin/posts/update` — actualización server-side.
+- `/api/admin/posts/delete` — eliminación server-side.
+
+### GitHub Token
+
+El token se usa exclusivamente en código server-side y nunca se expone al navegador.
+
+Para el endpoint de Contents de GitHub, un fine-grained personal access token necesita permiso **Contents: Read and write** sobre este repositorio. GitHub documenta que ese permiso permite crear, actualizar y eliminar archivos del repositorio.
+
+El CMS hace un commit por cada operación de contenido. Los cambios pasan a formar parte del repositorio y después deben ejecutar el flujo de build/deploy habitual del sitio.
 
 ## Auth
 
 Debe existir un usuario administrador en **Supabase → Authentication → Users**.
 
-El área `/admin` ya valida la sesión server-side. El CRUD todavía está pendiente; por ahora las migraciones dejan RLS preparado para lectura pública del contenido publicado y para enviar entradas pendientes al guestbook.
+El área `/admin` valida la sesión server-side. Projects y Posts requieren una sesión autenticada.
 
 ## Build
 
