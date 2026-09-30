@@ -1,4 +1,5 @@
 import { createServerClient } from '@supabase/ssr';
+import { getSecret } from 'astro:env/server';
 import type { AstroCookies } from 'astro';
 import type { Database } from './database.types';
 
@@ -18,21 +19,24 @@ function parseCookieHeader(header: string | null) {
 }
 
 export function createSupabaseServerClient(request: Request, cookies: AstroCookies) {
-  return createServerClient<Database>(
-    import.meta.env.SUPABASE_URL,
-    import.meta.env.SUPABASE_ANON_KEY,
-    {
-      cookies: {
-        getAll() {
-          return parseCookieHeader(request.headers.get('cookie'));
-        },
+  const url = getSecret('SUPABASE_URL');
+  const anonKey = getSecret('SUPABASE_ANON_KEY');
 
-        setAll(cookiesToSet) {
-          for (const { name, value, options } of cookiesToSet) {
-            cookies.set(name, value, options);
-          }
-        },
+  if (!url || !anonKey) {
+    throw new Error('Falta configurar SUPABASE_URL o SUPABASE_ANON_KEY.');
+  }
+
+  return createServerClient<Database>(url, anonKey, {
+    cookies: {
+      getAll() {
+        return parseCookieHeader(request.headers.get('cookie'));
+      },
+
+      setAll(cookiesToSet) {
+        for (const { name, value, options } of cookiesToSet) {
+          cookies.set(name, value, options);
+        }
       },
     },
-  );
+  });
 }
