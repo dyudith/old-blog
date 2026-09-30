@@ -10,7 +10,7 @@ export const prerender = false;
 const datePattern = /^\d{4}-\d{2}-\d{2}$/;
 
 export const POST: APIRoute = async ({ request, cookies, redirect }) => {
-  const supabase = createSupabaseServerClient(cookies, request);
+  const supabase = createSupabaseServerClient(request, cookies);
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) return redirect('/admin/login', 303);
