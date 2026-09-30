@@ -43,7 +43,14 @@ Pagefind puede no ejecutarse en Termux/Android; el build del resto del sitio sig
 
 Las migraciones están en `supabase/migrations/` y el seed en `supabase/seed.sql`.
 
-Las páginas públicas leen Supabase a través de repositories en `src/repositories/`; no consultan la base directamente.
+```env
+SUPABASE_URL=https://tu-proyecto.supabase.co
+SUPABASE_ANON_KEY=tu-anon-key
+
+GITHUB_TOKEN=tu-github-token
+GITHUB_REPOSITORY=dyudith/old-blog
+GITHUB_BRANCH=main
+```
 
 ## Fase 4.1 — autenticación
 
@@ -57,14 +64,28 @@ En Supabase debe existir el usuario administrador en **Authentication → Users*
 
 ## Fase 4.2 — CMS estructurado
 
-Ya están disponibles:
+La migración `20260929200000_initial_schema.sql` ya aplicada no debe modificarse. Los cambios posteriores se agregan como nuevas migraciones.
 
-- `/admin/projects` — crear, editar, publicar/despublicar y eliminar proyectos.
-- `/admin/books` — gestionar libros y estado de lectura.
-- `/admin/music` — historial y “escuchando ahora”.
-- `/admin/links` — gestionar enlaces.
+## Fase 4.4 — CMS de Posts
 
-El CRUD usa endpoints server-only y la `service_role` nunca se envía al navegador.
+Los posts siguen siendo contenido editorial MDX en `src/content/blog/`. El CMS no los mueve a Supabase: el panel privado usa la GitHub Contents API para leer, crear, editar y eliminar los archivos MDX.
+
+Rutas:
+
+- `/admin/posts` — listado de posts.
+- `/admin/posts/new` — crear un post.
+- `/admin/posts/edit?path=...` — editar un post.
+- `/api/admin/posts/create` — creación server-side.
+- `/api/admin/posts/update` — actualización server-side.
+- `/api/admin/posts/delete` — eliminación server-side.
+
+### GitHub Token
+
+El token se usa exclusivamente en código server-side y nunca se expone al navegador.
+
+Para el endpoint de Contents de GitHub, un fine-grained personal access token necesita permiso **Contents: Read and write** sobre este repositorio. GitHub documenta que ese permiso permite crear, actualizar y eliminar archivos del repositorio.
+
+El CMS hace un commit por cada operación de contenido. Los cambios pasan a formar parte del repositorio y después deben ejecutar el flujo de build/deploy habitual del sitio.
 
 ## Auth
 
@@ -76,7 +97,7 @@ SUPABASE_SERVICE_ROLE_KEY=tu-service-role-key
 
 La `service_role` debe permanecer únicamente en el servidor. Nunca la pongas en una variable `PUBLIC_*` ni en código cliente.
 
-## Próximas subfases
+El área `/admin` valida la sesión server-side. Projects y Posts requieren una sesión autenticada.
 
 - 4.3 — moderación del guestbook.
 - 4.4 — CMS de posts, borradores y preview MDX.

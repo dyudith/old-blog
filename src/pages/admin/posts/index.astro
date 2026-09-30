@@ -1,0 +1,121 @@
+---
+export const prerender = false;
+
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { listBlogPosts } from '../../../lib/github-content';
+
+const user = Astro.locals.user;
+if (!user) return Astro.redirect('/admin/login');
+
+const error = Astro.url.searchParams.get('error');
+let posts = [];
+let loadError = '';
+
+try {
+  posts = await listBlogPosts();
+} catch (err) {
+  loadError = err instanceof Error ? err.message : 'No se pudieron cargar los posts.';
+}
+---
+
+<BaseLayout title="Admin — Posts" showSidebar={false}>
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">CMS / Blog</p>
+      <h1>Posts</h1>
+      <p>Gestioná las publicaciones MDX del blog desde GitHub.</p>
+    </div>
+    <div class="actions">
+      <a class="button" href="/admin/posts/new">+ Nuevo post</a>
+      <a href="/admin">← Admin</a>
+    </div>
+  </header>
+
+  <p class="box notice">
+    Los cambios se guardan como commits en GitHub. Si tu deploy está conectado al repositorio,
+    el sitio se actualizará cuando se ejecute el próximo build.
+  </p>
+
+  {error && <p class="box error" role="alert">{error}</p>}
+  {loadError && <p class="box error" role="alert">{loadError}</p>}
+
+  {!loadError && posts.length === 0 && (
+    <section class="box empty">
+      <h2>No hay posts todavía</h2>
+      <p>Creá el primero desde el CMS.</p>
+      <a class="button" href="/admin/posts/new">Crear post</a>
+    </section>
+  )}
+
+  {!loadError && posts.length > 0 && (
+    <div class="table-wrap box">
+      <table>
+        <thead>
+          <tr>
+            <th>Post</th>
+            <th>Fecha</th>
+            <th>Tags</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {posts.map((post) => (
+            <tr>
+              <td>
+                <strong>{post.title || post.path}</strong>
+                <small>{post.path.replace('src/content/blog/', '')}</small>
+              </td>
+              <td>{post.date || '—'}</td>
+              <td>
+                <div class="tags">
+                  {post.tags.map((tag) => <span class="badge">#{tag}</span>)}
+                </div>
+              </td>
+              <td>
+                <span class:list={['badge', post.draft ? 'draft' : 'published']}>
+                  {post.draft ? 'Borrador' : 'Publicado'}
+                </span>
+              </td>
+              <td class="row-actions">
+                <a href={`/admin/posts/edit?path=${encodeURIComponent(post.path)}`}>Editar</a>
+                <form method="post" action="/api/admin/posts/delete">
+                  <input type="hidden" name="path" value={post.path} />
+                  <input type="hidden" name="sha" value={post.sha} />
+                  <button type="submit" onclick="return confirm('¿Eliminar este post? Esta acción crea un commit y no se puede deshacer desde el CMS.')">
+                    Eliminar
+                  </button>
+                </form>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )}
+</BaseLayout>
+
+<style>
+  .page-header { display:flex; justify-content:space-between; align-items:flex-start; gap:var(--space-4); padding-block:var(--space-5); }
+  .eyebrow { margin:0 0 var(--space-2); font-family:var(--font-mono); font-size:.8rem; text-transform:uppercase; color:var(--color-ink-soft); }
+  .actions { display:flex; gap:var(--space-3); align-items:center; flex-wrap:wrap; }
+  .button, button { padding:.65rem 1rem; border:1px solid var(--color-accent-strong); border-radius:var(--radius-sm); background:var(--color-accent); color:white; font:inherit; text-decoration:none; cursor:pointer; }
+  .notice { margin-bottom:var(--space-4); }
+  .error { border-color:#b34a4a; color:#8d2f2f; }
+  table { width:100%; border-collapse:collapse; }
+  th, td { text-align:left; padding:.75rem; border-bottom:1px solid var(--color-border); vertical-align:top; }
+  th { font-family:var(--font-heading); font-size:.85rem; }
+  td small { display:block; color:var(--color-ink-soft); font-family:var(--font-mono); font-size:.72rem; margin-top:.2rem; }
+  .tags { display:flex; gap:.35rem; flex-wrap:wrap; }
+  .row-actions { display:flex; gap:var(--space-3); align-items:center; flex-wrap:wrap; }
+  .row-actions form { margin:0; }
+  .row-actions button { padding:0; border:0; background:none; color:var(--color-accent); }
+  .published { border-color:var(--color-online); }
+  .draft { opacity:.7; }
+  .empty { text-align:center; }
+  @media (max-width:700px) {
+    .page-header { flex-direction:column; }
+    .table-wrap { overflow-x:auto; }
+    table { min-width:780px; }
+  }
+</style>

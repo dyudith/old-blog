@@ -1,0 +1,109 @@
+---
+export const prerender = false;
+
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { getBlogPost, postBody } from '../../../lib/github-content';
+
+const user = Astro.locals.user;
+if (!user) return Astro.redirect('/admin/login');
+
+const path = Astro.url.searchParams.get('path') ?? '';
+const error = Astro.url.searchParams.get('error');
+
+let post = null;
+let loadError = '';
+
+try {
+  post = await getBlogPost(path);
+} catch (err) {
+  loadError = err instanceof Error ? err.message : 'No se pudo cargar el post.';
+}
+---
+
+<BaseLayout title={post ? `Admin — Editar ${post.title}` : 'Admin — Editar post'} showSidebar={false}>
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">CMS / Blog</p>
+      <h1>Editar post</h1>
+    </div>
+    <a href="/admin/posts">← Posts</a>
+  </header>
+
+  {error && <p class="box error" role="alert">{error}</p>}
+  {loadError && <p class="box error" role="alert">{loadError}</p>}
+
+  {post && (
+    <form class="box form" method="post" action="/api/admin/posts/update">
+      <input type="hidden" name="path" value={post.path} />
+      <input type="hidden" name="sha" value={post.sha} />
+
+      <label>
+        Título
+        <input name="title" required maxlength="160" value={post.title} />
+      </label>
+
+      <label>
+        Archivo
+        <input value={post.path} readonly />
+        <small>El slug/archivo se mantiene fijo para no romper la URL existente.</small>
+      </label>
+
+      <label>
+        Descripción
+        <textarea name="description" required maxlength="500" rows="3">{post.description}</textarea>
+      </label>
+
+      <label>
+        Fecha
+        <input name="date" type="date" required value={post.date} />
+      </label>
+
+      <label>
+        Tags
+        <input name="tags" value={post.tags.join(', ')} />
+        <small>Separalos con comas.</small>
+      </label>
+
+      <label>
+        Cover image
+        <input name="coverImage" value={post.coverImage} />
+      </label>
+
+      <label>
+        Alt de la imagen
+        <input name="coverImageAlt" maxlength="200" value={post.coverImageAlt} />
+      </label>
+
+      <label class="check">
+        <input type="checkbox" name="draft" checked={post.draft} />
+        Guardar como borrador
+      </label>
+
+      <label>
+        Contenido MDX
+        <textarea class="editor" name="body" rows="28">{postBody(post)}</textarea>
+      </label>
+
+      <div class="form-actions">
+        <button type="submit">Guardar cambios</button>
+        <a href="/admin/posts">Cancelar</a>
+      </div>
+    </form>
+  )}
+</BaseLayout>
+
+<style>
+  .page-header { display:flex; justify-content:space-between; align-items:center; gap:var(--space-4); padding-block:var(--space-5); }
+  .eyebrow { margin:0 0 var(--space-2); font-family:var(--font-mono); font-size:.8rem; text-transform:uppercase; color:var(--color-ink-soft); }
+  .error { border-color:#b34a4a; color:#8d2f2f; }
+  .form { display:grid; gap:var(--space-4); max-width:900px; margin-inline:auto; }
+  label { display:grid; gap:var(--space-2); font-family:var(--font-heading); font-weight:600; }
+  input, textarea { width:100%; padding:.7rem .75rem; border:1px solid var(--color-border); border-radius:var(--radius-sm); background:var(--color-bg); color:var(--color-ink); font:inherit; }
+  input[readonly] { opacity:.75; }
+  small { color:var(--color-ink-soft); font-family:var(--font-body); font-weight:400; }
+  .check { display:flex; flex-direction:row; align-items:center; font-family:var(--font-body); font-weight:400; }
+  .check input { width:auto; }
+  .editor { min-height:520px; font-family:var(--font-mono); line-height:1.55; resize:vertical; }
+  .form-actions { display:flex; gap:var(--space-3); align-items:center; }
+  button { padding:.65rem 1rem; border:1px solid var(--color-accent-strong); border-radius:var(--radius-sm); background:var(--color-accent); color:white; font:inherit; cursor:pointer; }
+</style>
