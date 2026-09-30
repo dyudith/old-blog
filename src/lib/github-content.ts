@@ -1,3 +1,5 @@
+import { getSecret } from 'astro:env/server';
+
 const GITHUB_API = 'https://api.github.com';
 const BLOG_ROOT = 'src/content/blog';
 
@@ -28,9 +30,9 @@ export type BlogPostFile = {
 };
 
 function getConfig() {
-  const token = import.meta.env.GITHUB_TOKEN;
-  const repository = import.meta.env.GITHUB_REPOSITORY || 'dyudith/old-blog';
-  const branch = import.meta.env.GITHUB_BRANCH || 'main';
+  const token = getSecret('GITHUB_TOKEN');
+  const repository = getSecret('GITHUB_REPOSITORY') || 'dyudith/old-blog';
+  const branch = getSecret('GITHUB_BRANCH') || 'main';
 
   if (!token) {
     throw new Error('Falta configurar GITHUB_TOKEN para el CMS de Posts.');
@@ -107,7 +109,7 @@ function decodeGithubContent(content: string, encoding?: string) {
     return content;
   }
 
-  return Buffer.from(content.replace(/\n/g, ''), 'base64').toString('utf8');
+  return Buffer.from(content.replace(/\\n/g, ''), 'base64').toString('utf8');
 }
 
 function scalar(frontmatter: string, key: string) {
@@ -142,7 +144,7 @@ function tagsValue(frontmatter: string) {
 }
 
 function parsePost(path: string, sha: string, content: string): BlogPostFile {
-  const match = content.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/);
+  const match = content.match(/^---\\r?\\n([\\s\\S]*?)\\r?\\n---\\r?\\n?([\\s\\S]*)$/);
 
   if (!match) {
     throw new Error(`El post ${path} no tiene frontmatter válido.`);
@@ -166,7 +168,7 @@ function parsePost(path: string, sha: string, content: string): BlogPostFile {
 }
 
 export function postBody(post: BlogPostFile) {
-  const match = post.content.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/);
+  const match = post.content.match(/^---\\r?\\n([\\s\\S]*?)\\r?\\n---\\r?\\n?([\\s\\S]*)$/);
   return match?.[2] ?? post.content;
 }
 
@@ -223,7 +225,7 @@ export function buildPostContent(input: {
 
   lines.push('---', '', input.body.trimStart());
 
-  return lines.join('\n');
+  return lines.join('\\n');
 }
 
 export async function createBlogPost(path: string, content: string, message: string) {
