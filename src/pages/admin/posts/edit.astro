@@ -25,6 +25,11 @@ try {
     <div>
       <p class="eyebrow">CMS / Blog</p>
       <h1>Editar post</h1>
+      {post && (
+        <p class:list={['status', post.draft ? 'draft' : 'published']}>
+          {post.draft ? 'Borrador' : 'Publicado'}
+        </p>
+      )}
     </div>
     <a href="/admin/posts">← Posts</a>
   </header>
@@ -36,6 +41,7 @@ try {
     <form class="box form" method="post" action="/api/admin/posts/update">
       <input type="hidden" name="path" value={post.path} />
       <input type="hidden" name="sha" value={post.sha} />
+      <input type="hidden" name="currentDraft" value={post.draft ? 'true' : 'false'} />
 
       <label>
         Título
@@ -66,17 +72,12 @@ try {
 
       <label>
         Cover image
-        <input name="coverImage" value={post.coverImage} />
+        <input name="coverImage" value={post.coverImage} placeholder="Opcional — se usará la portada predeterminada si queda vacío" />
       </label>
 
       <label>
         Alt de la imagen
         <input name="coverImageAlt" maxlength="200" value={post.coverImageAlt} />
-      </label>
-
-      <label class="check">
-        <input type="checkbox" name="draft" checked={post.draft} />
-        Guardar como borrador
       </label>
 
       <label>
@@ -85,7 +86,12 @@ try {
       </label>
 
       <div class="form-actions">
-        <button type="submit">Guardar cambios</button>
+        <button type="submit" name="action" value="save" class="secondary">Guardar cambios</button>
+        {post.draft ? (
+          <button type="submit" name="action" value="publish">Publicar</button>
+        ) : (
+          <button type="submit" name="action" value="unpublish" class="warning">Despublicar</button>
+        )}
         <a href="/admin/posts">Cancelar</a>
       </div>
     </form>
@@ -93,17 +99,20 @@ try {
 </BaseLayout>
 
 <style>
-  .page-header { display:flex; justify-content:space-between; align-items:center; gap:var(--space-4); padding-block:var(--space-5); }
+  .page-header { display:flex; justify-content:space-between; align-items:flex-start; gap:var(--space-4); padding-block:var(--space-5); }
   .eyebrow { margin:0 0 var(--space-2); font-family:var(--font-mono); font-size:.8rem; text-transform:uppercase; color:var(--color-ink-soft); }
+  .status { margin:.4rem 0 0; font-family:var(--font-mono); font-size:.8rem; text-transform:uppercase; }
+  .status.published { color:var(--color-online); }
+  .status.draft { color:var(--color-ink-soft); }
   .error { border-color:#b34a4a; color:#8d2f2f; }
   .form { display:grid; gap:var(--space-4); max-width:900px; margin-inline:auto; }
   label { display:grid; gap:var(--space-2); font-family:var(--font-heading); font-weight:600; }
   input, textarea { width:100%; padding:.7rem .75rem; border:1px solid var(--color-border); border-radius:var(--radius-sm); background:var(--color-bg); color:var(--color-ink); font:inherit; }
   input[readonly] { opacity:.75; }
   small { color:var(--color-ink-soft); font-family:var(--font-body); font-weight:400; }
-  .check { display:flex; flex-direction:row; align-items:center; font-family:var(--font-body); font-weight:400; }
-  .check input { width:auto; }
   .editor { min-height:520px; font-family:var(--font-mono); line-height:1.55; resize:vertical; }
-  .form-actions { display:flex; gap:var(--space-3); align-items:center; }
+  .form-actions { display:flex; gap:var(--space-3); align-items:center; flex-wrap:wrap; }
   button { padding:.65rem 1rem; border:1px solid var(--color-accent-strong); border-radius:var(--radius-sm); background:var(--color-accent); color:white; font:inherit; cursor:pointer; }
+  button.secondary { background:transparent; color:var(--color-accent); }
+  button.warning { background:transparent; color:#8d2f2f; border-color:#b34a4a; }
 </style>
