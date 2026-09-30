@@ -41,7 +41,8 @@ try {
     <form class="box form" method="post" action="/api/admin/posts/update" enctype="multipart/form-data">
       <input type="hidden" name="path" value={post.path} />
       <input type="hidden" name="sha" value={post.sha} />
-      <input type="hidden" name="currentDraft" value={post.draft ? 'true' : 'false'} />\n      <input type="hidden" name="existingCoverImage" value={post.coverImage} />
+      <input type="hidden" name="currentDraft" value={post.draft ? 'true' : 'false'} />
+      <input type="hidden" name="existingCoverImage" value={post.coverImage} />
 
       <label>
         Título
@@ -112,9 +113,21 @@ try {
   input, textarea { width:100%; padding:.7rem .75rem; border:1px solid var(--color-border); border-radius:var(--radius-sm); background:var(--color-bg); color:var(--color-ink); font:inherit; }
   input[readonly] { opacity:.75; }
   small { color:var(--color-ink-soft); font-family:var(--font-body); font-weight:400; }
-  .cover-preview { width:100%; max-width:720px; aspect-ratio:1200 / 630; object-fit:cover; border-radius:var(--radius-sm); border:1px solid var(--color-border); }\n  .editor { min-height:520px; font-family:var(--font-mono); line-height:1.55; resize:vertical; }
+  .cover-preview { width:100%; max-width:720px; aspect-ratio:1200 / 630; object-fit:cover; border-radius:var(--radius-sm); border:1px solid var(--color-border); }
+  .editor { min-height:520px; font-family:var(--font-mono); line-height:1.55; resize:vertical; }
   .form-actions { display:flex; gap:var(--space-3); align-items:center; flex-wrap:wrap; }
   button { padding:.65rem 1rem; border:1px solid var(--color-accent-strong); border-radius:var(--radius-sm); background:var(--color-accent); color:white; font:inherit; cursor:pointer; }
   button.secondary { background:transparent; color:var(--color-accent); }
   button.warning { background:transparent; color:#8d2f2f; border-color:#b34a4a; }
-</style>\n\n<script>\n  const input = document.querySelector<HTMLInputElement>("#coverImage");\n  const preview = document.querySelector<HTMLImageElement>("#coverPreview");\n  input?.addEventListener("change", () => {\n    const file = input.files?.[0];\n    if (!file || !preview) return;\n    preview.src = URL.createObjectURL(file);\n    preview.alt = `Vista previa de ${file.name}`;\n  });\n</script>
+</style>
+
+<script>
+  const input = document.querySelector<HTMLInputElement>("#coverImage");
+  const preview = document.querySelector<HTMLImageElement>("#coverPreview");
+  input?.addEventListener("change", () => {
+    const file = input.files?.[0];
+    if (!file || !preview) return;
+    preview.src = URL.createObjectURL(file);
+    preview.alt = `Vista previa de ${file.name}`;
+  });
+</script>
