@@ -4,7 +4,7 @@ import { createSupabaseAdminClient } from '../../../../lib/supabase/admin';
 
 export const prerender = false;
 
-const resources = ['projects', 'books', 'music', 'links'] as const;
+const resources = ['projects', 'books', 'music', 'links', 'guestbook'] as const;
 type Resource = (typeof resources)[number];
 
 function isResource(value: string): value is Resource {
@@ -33,8 +33,19 @@ export const POST: APIRoute = async ({ params, request, cookies, redirect }) => 
   const db = createSupabaseAdminClient();
 
   try {
-    if (action === 'delete') {
+    if (action === 'delete' || action === 'approve' || action === 'hide') {
       if (!id) return new Response('Falta el id', { status: 400 });
+      if (resource === 'guestbook') {
+        if (action === 'delete') {
+          const result = await db.from('guestbook_entries').delete().eq('id', id);
+          if (result.error) throw result.error;
+        } else {
+          const status = action === 'approve' ? 'approved' : 'hidden';
+          const result = await db.from('guestbook_entries').update({ status }).eq('id', id);
+          if (result.error) throw result.error;
+        }
+        return redirect('/admin/guestbook', 303);
+      }
 
       const result =
         resource === 'projects'
@@ -112,6 +123,10 @@ export const POST: APIRoute = async ({ params, request, cookies, redirect }) => 
         ? await db.from('music_entries').update(row).eq('id', id)
         : await db.from('music_entries').insert(row);
       if (result.error) throw result.error;
+    }
+
+    if (resource === 'guestbook') {
+      return new Response('Acción no válida', { status: 400 });
     }
 
     if (resource === 'links') {
