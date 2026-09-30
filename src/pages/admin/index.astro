@@ -10,7 +10,7 @@ if (!user) {
 }
 
 const sections = [
-  { href: '/admin/posts', label: 'Posts', status: 'próximamente' },
+  { href: '/admin/posts', label: 'Posts', status: 'gestionar' },
   { href: '/admin/projects', label: 'Projects', status: 'gestionar' },
   { href: '/admin/books', label: 'Books', status: 'próximamente' },
   { href: '/admin/music', label: 'Music', status: 'próximamente' },
@@ -34,7 +34,7 @@ const sections = [
 
   <nav aria-label="Secciones de administración" class="admin-grid">
     {sections.map((section) => (
-      <a class="admin-card box" href={section.href} aria-disabled="true">
+      <a class="admin-card box" href={section.href}>
         <strong>{section.label}</strong>
         <span>{section.status}</span>
       </a>
