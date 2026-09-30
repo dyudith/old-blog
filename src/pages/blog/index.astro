@@ -15,6 +15,12 @@ const posts = await getPublishedPosts();
     {posts.map((post) => (
       <li class="box">
         <a href={`/blog/${post.id}`}>
+          <img
+            class="cover"
+            src={post.data.coverImage ?? '/default-cover.svg'}
+            alt={post.data.coverImageAlt ?? ''}
+            loading="lazy"
+          />
           <h2>{post.data.title}</h2>
         </a>
         <p><time datetime={post.data.date.toISOString()}>{post.data.date.toLocaleDateString('es-AR', { year: 'numeric', month: 'long', day: 'numeric' })}</time></p>
@@ -35,4 +41,5 @@ const posts = await getPublishedPosts();
   .post-list { list-style: none; padding: 0; display: grid; gap: var(--space-3); }
   .post-list h2 { margin: 0 0 var(--space-2); font-size: 1.1rem; }
   .post-list a:not(.badge) { text-decoration: none; }
+  .cover { display:block; width:100%; aspect-ratio:1200 / 630; object-fit:cover; border-radius:var(--radius-sm); margin-bottom:var(--space-3); }
 </style>
