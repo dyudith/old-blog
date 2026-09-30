@@ -5,7 +5,7 @@ import { deleteBlogPost } from '../../../../lib/github-content';
 export const prerender = false;
 
 export const POST: APIRoute = async ({ request, cookies, redirect }) => {
-  const supabase = createSupabaseServerClient(cookies, request);
+  const supabase = createSupabaseServerClient(request, cookies);
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) return redirect('/admin/login', 303);
