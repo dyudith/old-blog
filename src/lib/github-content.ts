@@ -113,122 +113,7 @@ function decodeGithubContent(content: string, encoding?: string) {
 }
 
 function scalar(frontmatter: string, key: string) {
-  const match = frontmatter.match(new RegExp(`^\\s*${key}:\\s*(.+)\\s*import { getSecret } from 'astro:env/server';
-
-const GITHUB_API = 'https://api.github.com';
-const BLOG_ROOT = 'src/content/blog';
-
-type GithubEntry = {
-  name: string;
-  path: string;
-  type: 'file' | 'dir';
-  sha: string;
-};
-
-type GithubFile = GithubEntry & {
-  type: 'file';
-  content?: string;
-  encoding?: string;
-};
-
-export type BlogPostFile = {
-  path: string;
-  sha: string;
-  content: string;
-  title: string;
-  description: string;
-  date: string;
-  tags: string[];
-  draft: boolean;
-  coverImage: string;
-  coverImageAlt: string;
-};
-
-function getConfig() {
-  const token = getSecret('GITHUB_TOKEN');
-  const repository = getSecret('GITHUB_REPOSITORY') || 'dyudith/old-blog';
-  const branch = getSecret('GITHUB_BRANCH') || 'main';
-
-  if (!token) {
-    throw new Error('Falta configurar GITHUB_TOKEN para el CMS de Posts.');
-  }
-
-  return { token, repository, branch };
-}
-
-function headers(token: string) {
-  return {
-    Accept: 'application/vnd.github+json',
-    Authorization: `Bearer ${token}`,
-    'X-GitHub-Api-Version': '2026-03-10',
-  };
-}
-
-async function githubRequest<T>(path: string, init: RequestInit = {}) {
-  const { token } = getConfig();
-  const response = await fetch(`${GITHUB_API}${path}`, {
-    ...init,
-    headers: {
-      ...headers(token),
-      ...(init.headers ?? {}),
-    },
-  });
-
-  if (!response.ok) {
-    const body = await response.text();
-    throw new Error(`GitHub API ${response.status}: ${body.slice(0, 500)}`);
-  }
-
-  return response.json() as Promise<T>;
-}
-
-function encodePath(path: string) {
-  return path
-    .split('/')
-    .map((segment) => encodeURIComponent(segment))
-    .join('/');
-}
-
-function assertPostPath(path: string) {
-  if (
-    !path.startsWith(`${BLOG_ROOT}/`) ||
-    !path.endsWith('.mdx') ||
-    path.includes('..') ||
-    path.includes('\\')
-  ) {
-    throw new Error('Ruta de post inválida.');
-  }
-}
-
-async function listEntries(path: string): Promise<GithubEntry[]> {
-  const { repository, branch } = getConfig();
-  const entries = await githubRequest<GithubEntry[]>(
-    `/repos/${repository}/contents/${encodePath(path)}?ref=${encodeURIComponent(branch)}`,
-  );
-
-  const files: GithubEntry[] = [];
-
-  for (const entry of entries) {
-    if (entry.type === 'file' && entry.name.endsWith('.mdx')) {
-      files.push(entry);
-    } else if (entry.type === 'dir') {
-      files.push(...(await listEntries(entry.path)));
-    }
-  }
-
-  return files;
-}
-
-function decodeGithubContent(content: string, encoding?: string) {
-  if (encoding !== 'base64') {
-    return content;
-  }
-
-  return Buffer.from(content.replace(/\n/g, ''), 'base64').toString('utf8');
-}
-
-function scalar(frontmatter: string, key: string) {
-  const match = frontmatter.match(, 'm'));
+  const match = frontmatter.match(new RegExp(`^\\s*${key}:\\s*(.+)\\s*$`, 'm'));
   if (!match) return '';
 
   const value = match[1].trim();
@@ -283,7 +168,7 @@ function parsePost(path: string, sha: string, content: string): BlogPostFile {
 }
 
 export function postBody(post: BlogPostFile) {
-  const match = post.content.match(/^---\\r?\\n([\\s\\S]*?)\\r?\\n---\\r?\\n?([\\s\\S]*)$/);
+  const match = post.content.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/);
   return match?.[2] ?? post.content;
 }
 
@@ -340,7 +225,7 @@ export function buildPostContent(input: {
 
   lines.push('---', '', input.body.trimStart());
 
-  return lines.join('\\n');
+  return lines.join('\n');
 }
 
 export async function createBlogPost(path: string, content: string, message: string) {
