@@ -142,7 +142,7 @@ function tagsValue(frontmatter: string) {
 }
 
 function parsePost(path: string, sha: string, content: string): BlogPostFile {
-  const match = content.match(/^---\\r?\\n([\\s\\S]*?)\\r?\\n---\\r?\\n?([\\s\\S]*)$/);
+  const match = content.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/);
 
   if (!match) {
     throw new Error(`El post ${path} no tiene frontmatter válido.`);
@@ -166,7 +166,7 @@ function parsePost(path: string, sha: string, content: string): BlogPostFile {
 }
 
 export function postBody(post: BlogPostFile) {
-  const match = post.content.match(/^---\\r?\\n([\\s\\S]*?)\\r?\\n---\\r?\\n?([\\s\\S]*)$/);
+  const match = post.content.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/);
   return match?.[2] ?? post.content;
 }
 
@@ -223,7 +223,7 @@ export function buildPostContent(input: {
 
   lines.push('---', '', input.body.trimStart());
 
-  return lines.join('\\n');
+  return lines.join('\n');
 }
 
 export async function createBlogPost(path: string, content: string, message: string) {
