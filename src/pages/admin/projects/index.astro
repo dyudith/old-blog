@@ -1,0 +1,111 @@
+---
+export const prerender = false;
+
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { createSupabaseServerClient } from '../../../lib/supabase/server';
+
+const supabase = createSupabaseServerClient(Astro.cookies, Astro.request);
+const { data: { user } } = await supabase.auth.getUser();
+
+if (!user) {
+  return Astro.redirect('/admin/login');
+}
+
+const { data: projects, error } = await supabase
+  .from('projects')
+  .select('*')
+  .order('created_at', { ascending: false });
+
+const statusLabels = {
+  active: 'Activo',
+  archived: 'Archivado',
+  idea: 'Idea',
+} as const;
+---
+
+<BaseLayout title="Admin — Projects" showSidebar={false}>
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">CMS</p>
+      <h1>Projects</h1>
+      <p>Gestioná los proyectos que aparecen en el sitio.</p>
+    </div>
+    <div class="actions">
+      <a class="button" href="/admin/projects/new">+ Nuevo proyecto</a>
+      <a href="/admin">← Admin</a>
+    </div>
+  </header>
+
+  {error && <p class="box error">No se pudieron cargar los proyectos: {error.message}</p>}
+
+  {!error && projects?.length === 0 && (
+    <section class="box empty">
+      <h2>No hay proyectos todavía</h2>
+      <p>Creá el primero para empezar a alimentar el sitio.</p>
+      <a class="button" href="/admin/projects/new">Crear proyecto</a>
+    </section>
+  )}
+
+  {projects && projects.length > 0 && (
+    <div class="table-wrap box">
+      <table>
+        <thead>
+          <tr>
+            <th>Proyecto</th>
+            <th>Estado</th>
+            <th>Visibilidad</th>
+            <th>Destacado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {projects.map((project) => (
+            <tr>
+              <td>
+                <strong>{project.name}</strong>
+                <small>/{project.slug}</small>
+              </td>
+              <td><span class="badge">{statusLabels[project.status]}</span></td>
+              <td>
+                <span class:list={['badge', project.published ? 'published' : 'draft']}>
+                  {project.published ? 'Publicado' : 'Borrador'}
+                </span>
+              </td>
+              <td>{project.featured ? 'Sí' : 'No'}</td>
+              <td class="row-actions">
+                <a href={`/admin/projects/${project.id}/edit`}>Editar</a>
+                <form method="post" action="/api/admin/projects/delete">
+                  <input type="hidden" name="id" value={project.id} />
+                  <button type="submit" onclick="return confirm('¿Eliminar este proyecto? Esta acción no se puede deshacer.')">Eliminar</button>
+                </form>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )}
+</BaseLayout>
+
+<style>
+  .page-header { display:flex; justify-content:space-between; align-items:flex-start; gap:var(--space-4); padding-block:var(--space-5); }
+  .eyebrow { margin:0 0 var(--space-2); font-family:var(--font-mono); font-size:.8rem; text-transform:uppercase; color:var(--color-ink-soft); }
+  .actions { display:flex; gap:var(--space-3); align-items:center; flex-wrap:wrap; }
+  .button, button { padding:.65rem 1rem; border:1px solid var(--color-accent-strong); border-radius:var(--radius-sm); background:var(--color-accent); color:white; font:inherit; text-decoration:none; cursor:pointer; }
+  table { width:100%; border-collapse:collapse; }
+  th, td { text-align:left; padding:.75rem; border-bottom:1px solid var(--color-border); vertical-align:top; }
+  th { font-family:var(--font-heading); font-size:.85rem; }
+  td small { display:block; color:var(--color-ink-soft); font-family:var(--font-mono); font-size:.72rem; margin-top:.2rem; }
+  .row-actions { display:flex; gap:var(--space-3); align-items:center; flex-wrap:wrap; }
+  .row-actions form { margin:0; }
+  .row-actions button { padding:0; border:0; background:none; color:var(--color-accent); }
+  .published { border-color:var(--color-online); }
+  .draft { opacity:.7; }
+  .empty { text-align:center; }
+  .error { border-color:#b34a4a; }
+  @media (max-width:700px) {
+    .page-header { flex-direction:column; }
+    .table-wrap { overflow-x:auto; }
+    table { min-width:680px; }
+  }
+</style>

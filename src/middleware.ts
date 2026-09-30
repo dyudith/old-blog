@@ -10,7 +10,9 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
   context.locals.user = user;
 
-  const isAdminRoute = context.url.pathname === '/admin' || context.url.pathname.startsWith('/admin/');
+  const isAdminRoute =
+    context.url.pathname === '/admin' ||
+    context.url.pathname.startsWith('/admin/');
   const isLoginRoute = context.url.pathname === '/admin/login';
 
   if (isAdminRoute && !isLoginRoute && !user) {

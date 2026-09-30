@@ -10,6 +10,7 @@ npm-debug.log*
 
 # environment variables — NUNCA subir esto
 .env
+.env.local
 .env.production
 .env.*.local
 

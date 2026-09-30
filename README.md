@@ -25,8 +25,9 @@ Abrí `http://localhost:4321`.
 Para producción:
 
 ```bash
-npm run build
-npm run preview
+supabase login
+supabase link --project-ref <tu-project-ref>
+supabase db push
 ```
 
 Pagefind puede no ejecutarse en Termux/Android; el build del resto del sitio sigue siendo verificable.
@@ -65,7 +66,7 @@ Ya están disponibles:
 
 El CRUD usa endpoints server-only y la `service_role` nunca se envía al navegador.
 
-Variables necesarias en `.env`:
+## Auth
 
 ```env
 SUPABASE_URL=https://tu-proyecto.supabase.co
