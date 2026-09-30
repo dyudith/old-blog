@@ -1,0 +1,95 @@
+---
+export const prerender = false;
+
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { createSupabaseServerClient } from '../lib/supabase/server';
+
+const supabase = createSupabaseServerClient(Astro.request, Astro.cookies);
+const { data: entries } = await supabase
+  .from('guestbook_entries')
+  .select('id, name, message, website, created_at')
+  .eq('status', 'approved')
+  .order('created_at', { ascending: false });
+
+const success = Astro.url.searchParams.get('success');
+const error = Astro.url.searchParams.get('error');
+---
+
+<BaseLayout title="Guestbook" description="Dejá un mensaje en el guestbook.">
+  <header class="page-header">
+    <p class="eyebrow">Guestbook</p>
+    <h1>Dejá tu mensaje</h1>
+    <p>Los mensajes aparecen después de ser moderados.</p>
+  </header>
+
+  {success && <p class="box notice" role="status">Tu mensaje fue enviado y quedó pendiente de moderación.</p>}
+  {error && <p class="box error" role="alert">{error}</p>}
+
+  <section class="box">
+    <form method="post" action="/api/guestbook" class="form">
+      <label>
+        Nombre
+        <input name="name" required maxlength="80" autocomplete="name" />
+      </label>
+
+      <label>
+        Sitio web <span>(opcional)</span>
+        <input name="website" type="url" maxlength="300" placeholder="https://..." autocomplete="url" />
+      </label>
+
+      <label>
+        Mensaje
+        <textarea name="message" required maxlength="1000" rows="6"></textarea>
+      </label>
+
+      <label class="honeypot" aria-hidden="true">
+        Empresa
+        <input name="company" tabindex="-1" autocomplete="off" />
+      </label>
+
+      <button type="submit">Firmar el guestbook</button>
+    </form>
+  </section>
+
+  <section class="entries" aria-labelledby="guestbook-entries">
+    <h2 id="guestbook-entries">Mensajes</h2>
+
+    {entries?.length ? (
+      <div class="list">
+        {entries.map((entry) => (
+          <article class="box entry">
+            <header>
+              <strong>
+                {entry.website ? <a href={entry.website} rel="nofollow noopener noreferrer">{entry.name}</a> : entry.name}
+              </strong>
+              <time datetime={entry.created_at}>{new Date(entry.created_at).toLocaleDateString('es-AR')}</time>
+            </header>
+            <p>{entry.message}</p>
+          </article>
+        ))}
+      </div>
+    ) : (
+      <p class="box empty">Todavía no hay mensajes publicados.</p>
+    )}
+  </section>
+</BaseLayout>
+
+<style>
+  .page-header { padding-block:var(--space-5); }
+  .eyebrow { margin:0 0 var(--space-2); font-family:var(--font-mono); font-size:.8rem; text-transform:uppercase; color:var(--color-ink-soft); }
+  .form { display:grid; gap:var(--space-3); max-width:720px; }
+  label { display:grid; gap:.35rem; font-weight:600; }
+  label span { font-weight:400; color:var(--color-ink-soft); }
+  input, textarea { width:100%; padding:.7rem .75rem; border:1px solid var(--color-border); border-radius:var(--radius-sm); background:var(--color-bg); color:var(--color-ink); font:inherit; }
+  textarea { resize:vertical; }
+  button { width:max-content; padding:.65rem 1rem; border:1px solid var(--color-accent-strong); border-radius:var(--radius-sm); background:var(--color-accent); color:white; font:inherit; cursor:pointer; }
+  .notice { border-color:var(--color-online); }
+  .error { border-color:#b34a4a; color:#8d2f2f; }
+  .entries { margin-top:var(--space-5); }
+  .list { display:grid; gap:var(--space-2); }
+  .entry header { display:flex; justify-content:space-between; gap:var(--space-3); }
+  .entry time { color:var(--color-ink-soft); font-family:var(--font-mono); font-size:.75rem; }
+  .entry p { white-space:pre-wrap; }
+  .empty { color:var(--color-ink-soft); }
+  .honeypot { position:absolute; left:-10000px; width:1px; height:1px; overflow:hidden; }
+</style>
