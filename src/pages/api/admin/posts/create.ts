@@ -17,6 +17,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
   if (!user) return redirect('/admin/login', 303);
 
   const form = await request.formData();
+  const action = String(form.get('action') ?? 'draft');
   const title = String(form.get('title') ?? '').trim();
   const slug = String(form.get('slug') ?? '').trim();
   const description = String(form.get('description') ?? '').trim();
@@ -28,6 +29,10 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
   const body = String(form.get('body') ?? '');
   const coverImage = String(form.get('coverImage') ?? '').trim();
   const coverImageAlt = String(form.get('coverImageAlt') ?? '').trim();
+
+  if (!['draft', 'publish'].includes(action)) {
+    return redirect('/admin/posts/new?error=Acci%C3%B3n%20inv%C3%A1lida', 303);
+  }
 
   if (!title || !description || !slugPattern.test(slug) || !datePattern.test(date)) {
     return redirect('/admin/posts/new?error=Datos%20inv%C3%A1lidos', 303);
@@ -47,14 +52,14 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
     description,
     date,
     tags,
-    draft: form.has('draft'),
+    draft: action !== 'publish',
     coverImage,
     coverImageAlt,
     body,
   });
 
   try {
-    await createBlogPost(path, content, `content: add post ${slug}`);
+    await createBlogPost(path, content, `content: ${action === 'publish' ? 'publish' : 'save draft'} ${slug}`);
   } catch (err) {
     const message = encodeURIComponent(err instanceof Error ? err.message : 'No se pudo crear el post.');
     return redirect(`/admin/posts/new?error=${message}`, 303);
