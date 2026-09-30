@@ -26,9 +26,9 @@ Astro
 - [x] Fase 4.1 — Auth + Admin
 - [x] Fase 4.2 — CMS dinámico
 - [x] Fase 4.3 — Guestbook
-- [ ] Fase 4.4 — Posts CMS
+- [x] Fase 4.4 — Posts CMS
 - [~] Fase 4.5 — Storage (implementado; falta aplicar migración y QA)
-- [ ] Fase 4.6 — Publishing / CI-CD
+- [~] Fase 4.6 — Publishing / CI-CD (CI de build implementado; falta deploy)
 - [ ] Fase 4.7 — Production / Hosting
 - [ ] Fase 4.8 — QA MVP
 - [ ] MVP 1.0
