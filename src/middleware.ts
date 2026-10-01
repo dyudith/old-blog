@@ -2,6 +2,10 @@ import { defineMiddleware } from 'astro:middleware';
 import { createSupabaseServerClient } from './lib/supabase/server';
 
 export const onRequest = defineMiddleware(async (context, next) => {
+  if (context.isPrerendered) {
+    return next();
+  }
+
   const supabase = createSupabaseServerClient(context.request, context.cookies);
 
   const {
