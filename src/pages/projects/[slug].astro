@@ -1,35 +1,43 @@
 ---
 export const prerender = false;
+
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { getPublishedProjects } from '../../repositories/projects';
+import { getProjectBySlug } from '../../repositories/projects';
 
-// getStaticPaths corre en build time: si Supabase no está configurado
-// (getPublishedProjects devuelve []), simplemente no se genera ninguna
-// ruta de proyecto — el build no falla, solo /projects queda sin detalles
-// hasta que haya credenciales reales.
-export async function getStaticPaths() {
-  const projects = await getPublishedProjects();
-  return projects.map((project) => ({
-    params: { slug: project.slug },
-    props: { project },
-  }));
+const slug = Astro.params.slug;
+const project = slug ? await getProjectBySlug(slug) : null;
+
+if (!project) {
+  Astro.response.status = 404;
 }
-
-const { project } = Astro.props;
 ---
 
-<BaseLayout title={project.name} description={project.description} image={project.image ?? undefined}>
-  <article class="box">
-    <h1>{project.name}</h1>
-    <p>{project.description}</p>
-    {project.long_description && <p>{project.long_description}</p>}
-    <ul class="tag-list">
-      {project.technologies.map((tech) => <li class="badge">{tech}</li>)}
-    </ul>
-    <p>
-      {project.url && <a href={project.url} rel="noopener noreferrer">sitio →</a>}
-      {project.github_url && <> · <a href={project.github_url} rel="noopener noreferrer">código →</a></>}
-    </p>
-  </article>
-  <p><a href="/projects">← volver a proyectos</a></p>
+<BaseLayout
+  title={project ? project.name : 'Proyecto no encontrado'}
+  description={project?.description ?? 'El proyecto solicitado no existe.'}
+  image={project?.image ?? undefined}
+>
+  {project ? (
+    <>
+      <article class="box">
+        <h1>{project.name}</h1>
+        <p>{project.description}</p>
+        {project.long_description && <p>{project.long_description}</p>}
+        <ul class="tag-list">
+          {project.technologies.map((tech) => <li class="badge">{tech}</li>)}
+        </ul>
+        <p>
+          {project.url && <a href={project.url} rel="noopener noreferrer">sitio →</a>}
+          {project.github_url && <> · <a href={project.github_url} rel="noopener noreferrer">código →</a></>}
+        </p>
+      </article>
+      <p><a href="/projects">← volver a proyectos</a></p>
+    </>
+  ) : (
+    <article class="box">
+      <h1>Proyecto no encontrado</h1>
+      <p>El proyecto solicitado no existe o ya no está publicado.</p>
+      <p><a href="/projects">← volver a proyectos</a></p>
+    </article>
+  )}
 </BaseLayout>
